@@ -6,11 +6,12 @@
 #setup gridexport
 #setup dhtools
 
-DSCONF=reco
+DSCONF=digi
 MAINDIR=`pwd`
 WFPROJ=CR_BKGDS
+YEAR=2025
 TAG=`date +"%y%m%d%H%M%S"`
-OUTDIR=${DSCONF}_${TAG}
+OUTDIR=${DSCONF}_${YEAR}_${TAG}
 OUTPNFS=/pnfs/mu2e/scratch/users/bbarton/workflow/${OUTDIR}/
 SF=Pnfs_fcl/${OUTDIR}/fcllist.00
 BN=`basename $SF | cut -d. -f 1`
@@ -46,8 +47,8 @@ submit_job () {
 echo "Running stage: ${DSCONF}" 
 
 if [ "$DSCONF" == "digi" ]; then
-    INFCL=/mu2e/app/users/bbarton/Offline/JobConfig/primary/CRY-offspill.fcl 
-    INLIST=/mu2e/app/users/bbarton/
+    INFCL=/mu2e/app/users/bbarton/CrBkgEstims/Fcl/CRY-offspill.fcl 
+    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_digi_both_test.txt
     MERGE=100
 elif [ "$DSCONF" == "reco" ]; then
     INFCL=/mu2e/app/users/Offline/JobConfig/reco/CRY-cosmic-general-mix.fcl #st_testBatch.txt
