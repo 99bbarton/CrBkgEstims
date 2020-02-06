@@ -315,10 +315,10 @@ void deleteHists()
    @param treePath : Path to the TrkAna tree to be plotted
    @param neg : true if plotting the negative tree, false for the positive tree
    @param makeCuts : true if cuts should be applied
-   @param useMomCut : true if momentum cut should be applied (only applicable if makeCuts is true)
+   @param momCut : 0 for no cuts, 1 for physics window cuts, 2 for scaled window cuts
    @param onlyScan : If true, doesn't make plots - only performs initial events counts and scans
  */
-void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, bool useMomCut = true, bool onlyScan = false)
+void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut = 2, bool onlyScan = false)
 {
 
   /********************************************************************************************************************************************************/
@@ -326,6 +326,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, bool useMom
 
   //Signal cuts
   string momentum_cut = "deent.mom>100 && deent.mom<110"; //Use wider momentum window than experimental signal window
+  string signal_mom_cut = "deent.mom>103.75 && deent.mom<105";
+
   string no_upstream = "ue.status<0";
   string trk_qual;
   string trk_cut_pid;
@@ -346,12 +348,14 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, bool useMom
   string all_cuts_MDC = momentum_cut + "&&" + no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R;
   string signalCuts = all_cuts_MDC + "&&" + trk_cut_pid + "&&" + timing_cut;
   string noMom = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid + "&&" + timing_cut; 
+  string physicsCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid + "&&" + timing_cut + "&&" + signal_mom_cut;
   
   //Alternative cuts
   string d0is0 = "demcent.d0==0";
   string noMomNoPID = trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R;
   string testCut = momentum_cut + "&&" + no_upstream + "&&" + trk_qual + "&&" + trk_cut_pid + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + timing_cut; 
   string testCut2 = noMom;
+  
 
 
   //////////////////////////////////////////////////////////// e^+ cuts //////////////////////////////////////////////////////////////////////////////////
@@ -388,8 +392,10 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, bool useMom
   string cutIdentifier;
   if (makeCuts)
     {     
-      if (useMomCut)
+      if (momCut == 2)
 	cuts = TCut(signalCuts.c_str());
+      else if (momCut == 1)
+	cuts =TCut(physicsCuts.c_str());
       else
 	cuts = TCut(noMom.c_str());
 
@@ -443,6 +449,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, bool useMom
       cout << "Number of mu+ events = " << tree->GetEntries(cuts + "demcgen.pdg==-13")  << endl;
       cout << "Number of pi- events = " << tree->GetEntries(cuts + "demcgen.pdg==-211")  << endl;
       cout << "Number of pi+ events = " << tree->GetEntries(cuts + "demcgen.pdg==211")  << endl;
+
+      cout << "Number of events without CRV coincidences = " << tree->GetEntries(cuts + "@crvinfo.size()<1") << endl;
      
       cout << "\nOther reconstructed events:" << endl;
       tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>211","");
