@@ -1,15 +1,15 @@
 #/bin/bash
 #setup mu2e
 #source Offline/setup.sh
-#setup mu2egrid
-#setup mu2etools
-#setup gridexport
-#setup dhtools
+setup mu2egrid
+setup mu2etools
+setup gridexport
+setup dhtools
 
-DSCONF=digi
+DSCONF=reproc
 MAINDIR=`pwd`
 WFPROJ=CR_BKGDS
-YEAR=2025
+YEAR=2030
 TAG=`date +"%y%m%d%H%M%S"`
 OUTDIR=${DSCONF}_${YEAR}_${TAG}
 OUTPNFS=/pnfs/mu2e/scratch/users/bbarton/workflow/${OUTDIR}/
@@ -29,7 +29,7 @@ submit_job () {
 
     RESOURCE="--disk=20GB --memory=5000MB"
     command="mu2eprodsys --clustername="${JN}" --fcllist=$SF --wfproject=$WFPROJ --dsconf=$DSCONF \
-      --dsowner=bbarton --OS=SL7 ${RESOURCE} --expected-lifetime=23h --code=$CODE \
+      --dsowner=bbarton --OS=SL7 ${RESOURCE} --expected-lifetime=35h --code=$CODE \
       --resource-provides=usage_model=DEDICATED,OPPORTUNISTIC"
     echo "Submitting: " $command
     echo `$command` > $LN 2>&1
@@ -47,13 +47,19 @@ submit_job () {
 echo "Running stage: ${DSCONF}" 
 
 if [ "$DSCONF" == "digi" ]; then
-    INFCL=/mu2e/app/users/bbarton/CrBkgEstims/Fcl/CRY-offspill.fcl 
-    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_digi_both_test.txt
+    INFCL=JobConfig/primary/CRY-offspill.fcl 
+    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_digi_both.txt
     MERGE=100
 elif [ "$DSCONF" == "reco" ]; then
-    INFCL=/mu2e/app/users/Offline/JobConfig/reco/CRY-cosmic-general-mix.fcl #st_testBatch.txt
-    INLIST=/mu2e/app/users/bbarton/
+    INFCL=JobConfig/reco/CRY-cosmic-general-mix.fcl #st_testBatch.txt
+    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_reco_2030_testFile.txt
     MERGE=5
+elif [ "$DSCONF" == "reproc" ]; then
+    #SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/digi2030_reproFCLs.fcllist
+    SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/testFclMod.txt
+    MERGE=1
+    submit_job
+    exit 0
 else
     echo "Unknown configuration"
     exit 0
@@ -63,7 +69,7 @@ fi
 mkdir Fcl_files/$OUTDIR
 echo "Generating fcl files in: " Fcl_files/$OUTDIR
 
-(cd Fcl_files/$OUTDIR && generate_fcl --desc=sim --dsowner=oksuzian --dsconf=$DSCONF --inputs=${INLIST} --merge=${MERGE}  --embed ${MAINDIR}/${INFCL})
+(cd Fcl_files/$OUTDIR && generate_fcl --desc=sim --dsowner=oksuzian --dsconf=$DSCONF --inputs=${INLIST} --merge=${MERGE}  --embed ${INFCL})
 
 if [ "$DSCONF" == "digi" ] || [ "$DSCONF" == "reco" ] ; then
     # Copy fcl files to pnfs area
