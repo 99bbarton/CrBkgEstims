@@ -1,0 +1,9 @@
+error: cigetcert: Kerberos initialization failed: GSSError: (('Unspecified GSS failure.  Minor code may provide more information', 851968), ('Ticket expired', -1765328352))
+
+JOBSUBJOBID                           OWNER           SUBMITTED     RUN_TIME   ST PRI SIZE CMD
+4273340.224@jobsub03.fnal.gov         bbarton         02/12 09:44   1+06:00:53 H   0   1.5 mu2eprodsys.sh_20200212_094430_1084493_0_1_wrap.sh 
+4273340.609@jobsub03.fnal.gov         bbarton         02/12 09:44   1+06:01:27 H   0   1.7 mu2eprodsys.sh_20200212_094430_1084493_0_1_wrap.sh 
+
+2 jobs; 0 completed, 0 removed, 0 idle, 0 running, 2 held, 0 suspended
+
+

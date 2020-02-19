@@ -56,7 +56,7 @@ elif [ "$DSCONF" == "reco" ]; then
     MERGE=5
 elif [ "$DSCONF" == "reproc" ]; then
     #SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/digi2030_reproFCLs.fcllist
-    SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/testFclMod.txt
+    SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_digis_2030_rerunDuplicateFails.txt
     MERGE=1
     submit_job
     exit 0
