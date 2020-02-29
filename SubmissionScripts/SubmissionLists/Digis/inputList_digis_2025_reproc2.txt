@@ -1,0 +1,2 @@
+/pnfs/mu2e/scratch/users/bbarton/workflow/digi_2025_reproc/cnf.oksuzian.sim.digi.001002_00009016.fcl
+/pnfs/mu2e/scratch/users/bbarton/workflow/digi_2025_reproc/cnf.oksuzian.sim.digi.001002_00039065.fcl

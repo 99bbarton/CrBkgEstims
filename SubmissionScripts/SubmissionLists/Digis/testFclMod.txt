@@ -1,0 +1,3 @@
+/pnfs/mu2e/scratch/users/bbarton/workflow/digi_testDuplicateAvoider/cnf.bbarton.sim.digi.001002_00000200_test1.fcl
+/pnfs/mu2e/scratch/users/bbarton/workflow/digi_testDuplicateAvoider/cnf.bbarton.sim.digi.001002_00000200_test2.fcl
+/pnfs/mu2e/scratch/users/bbarton/workflow/digi_testDuplicateAvoider/cnf.oksuzian.sim.digi.001002_00000200.fcl
