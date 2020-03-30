@@ -6,10 +6,10 @@ setup mu2etools
 setup gridexport
 setup dhtools
 
-DSCONF=reco
+DSCONF=reproc
 MAINDIR=`pwd`
 WFPROJ=CR_BKGDS
-YEAR=2030
+YEAR=reco_2025_lo
 TAG=`date +"%y%m%d%H%M%S"`
 OUTDIR=${DSCONF}_${YEAR}_${TAG}
 OUTPNFS=/pnfs/mu2e/scratch/users/bbarton/workflow/${OUTDIR}/
@@ -29,7 +29,7 @@ submit_job () {
 
     RESOURCE="--disk=20GB --memory=2500MB" #Was 5000 #########################
     command="mu2eprodsys --clustername="${JN}" --fcllist=$SF --wfproject=$WFPROJ --dsconf=$DSCONF \
-      --dsowner=bbarton --OS=SL7 ${RESOURCE} --expected-lifetime=30h --code=$CODE \
+      --dsowner=bbarton --OS=SL7 ${RESOURCE} --expected-lifetime=24h --code=$CODE \
       --resource-provides=usage_model=DEDICATED,OPPORTUNISTIC"
     echo "Submitting: " $command
     echo `$command` > $LN 2>&1
@@ -48,15 +48,16 @@ echo "Running stage: ${DSCONF}"
 
 if [ "$DSCONF" == "digi" ]; then
     INFCL=JobConfig/primary/CRY-offspill.fcl 
-    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_digi_both.txt
-    MERGE=100
+    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/Digis/inputList_digi_lo.txt
+    MERGE=50 #Was 100 for original 2025 and 2030 digi processing jobs
 elif [ "$DSCONF" == "reco" ]; then
-    INFCL=JobConfig/reco/CRY-cosmic-general-mix.fcl 
-    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/Reco/inputList_reco_2030.txt
+    #INFCL=JobConfig/reco/CRY-cosmic-general-mix.fcl 
+    INFCL=JobConfig/reco/CRY-cosmic-general-mix-loweredThresholds.fcl
+    INLIST=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/Reco/inputList_2030_reco_lo.txt
     MERGE=2
 elif [ "$DSCONF" == "reproc" ]; then
     #SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/digi2030_reproFCLs.fcllist
-    SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/inputList_reco_2025_reproc.txt
+    SF=/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/SubmissionLists/Reco/inputList_reco_2025_lo_reproc2.txt
     MERGE=1
     submit_job
     exit 0

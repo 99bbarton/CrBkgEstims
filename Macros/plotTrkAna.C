@@ -32,7 +32,8 @@ static bool INC_TRKQUAL_SFX = false; //Prior to mid-July, dequal leaves were nam
 TH1F *h_crvinfomc_x0;
 TH1F *h_crvinfomc_y0;
 TH1F *h_crvinfomc_z0;
-TH2F *h_crvinfomc_z0_vs_x0; 
+TH2F *h_crvinfomc_z0_vs_x0;
+TH2F *h_crvinfomc_z0_vs_x0_noCoinc; 
 TH2F *h_crvinfomc_z0_vs_y0;
 TH1F *h_crvinfomc_primaryX;
 TH1F *h_crvinfomc_primaryY;
@@ -92,6 +93,11 @@ void initializeHists(bool makeCuts)
   h_crvinfomc_z0_vs_x0->SetXTitle("z at the CRV (m)");
   h_crvinfomc_z0_vs_x0->SetYTitle("x at the CRV (m)");
   h_crvinfomc_z0_vs_x0->SetStats(false);
+
+  h_crvinfomc_z0_vs_x0_noCoinc = new TH2F("h_crvinfomc_z0_vs_x0_noCoinc","crvinfomc._z[0] vs crvinfomc._x[0]", 100, -5, 20, 100, -7.5, 1);
+  h_crvinfomc_z0_vs_x0_noCoinc->SetXTitle("z at the CRV (m)");
+  h_crvinfomc_z0_vs_x0_noCoinc->SetYTitle("x at the CRV (m)");
+  h_crvinfomc_z0_vs_x0_noCoinc->SetStats(false);
 
   //crvinfomc._z[0]:crvinfomc._y[0] - z vs y position at the CRV
   h_crvinfomc_z0_vs_y0 = new TH2F("h_crvinfomc_z0_vs_y0","crvinfomc._z[0] vs crvinfomc._y[0]", 100, -5, 20, 100, -2., 3.5);
@@ -371,6 +377,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string t0 = "de.t0 > 700 && de.t0 < 1695";
   string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0; //std cuts
   // string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid + trk qual
+  string ePlus_noMom = nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+t0;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //Read tree from file
@@ -400,9 +407,14 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	cuts = TCut(noMom.c_str());
 
       if (!neg)
-	cuts = TCut(ePlusCuts.c_str());
-      //cuts = TCut(testCut.c_str());////////////////////////////////////////////
-      // cuts = TCut(trk_cut_pid.c_str());
+	{
+	  if (momCut == 1)
+	    cuts = TCut(ePlusCuts.c_str());
+	  else
+	    cuts = TCut(ePlus_noMom.c_str());
+	}
+	
+     
       
       cutIdentifier = "_cut";
     }

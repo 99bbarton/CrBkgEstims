@@ -23,8 +23,7 @@ dirName = input("Input the directory (not path) of fcl files: ")
 
 fcls = listdir(genPath + dirName)
 
-
-#Make a fcllist of files that need to be reprocessed
+#t of files that need to be reprocessed
 outFileName = input("Enter a filename for the output fcllist: ")
 
 outFile = open(outFileName,"w")

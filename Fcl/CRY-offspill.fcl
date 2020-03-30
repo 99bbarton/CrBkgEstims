@@ -67,5 +67,8 @@ services.TFileService.fileName        : "nts.owner.CRY-cosmic-general.version.se
 outputs.Output.fileName     	      : "dig.owner.CRY-cosmic-general.version.sequencer.art"
 
 
-physics.producers.CrvPhotons.scintillationYield           	 : 16803     //29 PE - beam on light yield in 2025
-#physics.producers.CrvPhotons.scintillationYield           	 : 11009     //19 PE - beam on light yield in 2030
+#physics.producers.CrvPhotons.scintillationYield           	 : 11588     //20 PE - beam on light yield in 2025
+physics.producers.CrvPhotons.scintillationYield           	 : 7532    //13 PE - beam on light yield in 2030
+
+
+physics.analyzers.digiCompressionCheck.checkTrackerDuplicateSteps : false //Prevents duplicate waveform error
