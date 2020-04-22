@@ -23,8 +23,8 @@
 /*********************************************************************************************************************************************************/
 ////////////////////////////////////////////////////////   Control Params    //////////////////////////////////////////////////////////////////////////////
 
-static bool INC_TRKQUAL_SFX = false; //Prior to mid-July, dequal leaves were named with suffixes - set to true to read trees prior to this date
-
+static bool INC_TRKQUAL_SFX = false; //Prior to mid-July 2019, dequal leaves were named with suffixes - set to true to read trees prior to this date
+static bool INC_CRV_SUMMARIES = true; //Set to true if examining tree with Ralf's CRV summary leaves 
 
 /*********************************************************************************************************************************************************/
 ///////////////////////////////////////////////////    Define Standard Histograms & Graphs    /////////////////////////////////////////////////////////////
@@ -61,6 +61,10 @@ TH1F *h_delta_t_minus_demcpri_t0;
 TH1F *h_de_t0_minus_demcpri_t0;
 TH1F *h_neutronKE;
 TH1F *h_neutronKE_noCRV;
+TH1F *h_crvsummarymc_total_E_dep;
+TH1F *h_nHitCounters;
+//TH2F *h_crvinfomcplane_primaryZ_vs_X;
+
 
 TGraph *g_crvinfomc_z0_vs_x0; 
 TGraph *g_crvinfomc_z0_vs_y0;
@@ -71,6 +75,8 @@ TGraph *g_cos_theta_vs_tandip;
 TGraph *g_oposx_vs_oposz;
 TGraph *g_oposy_vs_oposz;
 TGraph *g_oposy_vs_oposx;
+TGraph *g_crvinfomcplane_primaryZ_vs_X;
+
 
 
 void initializeHists(bool makeCuts)
@@ -265,6 +271,25 @@ void initializeHists(bool makeCuts)
   h_neutronKE_noCRV = new TH1F("h_neutronKE_noCRV", "Kinetic Energy of Neutron Primaries without CRV Hits", 50, 0, 25000);
   h_neutronKE_noCRV->SetXTitle("(MeV)");
 
+  
+  if (INC_CRV_SUMMARIES)
+    {
+      //MC Truth: Energy deposited in the CRV
+      h_crvsummarymc_total_E_dep = new TH1F("h_crvsummarymc_total_E_dep", "MC Truth: Total E Deposited in CRV", 100, 0, 100);
+      h_crvsummarymc_total_E_dep->SetXTitle("Energy (MeV");
+
+      //MC Truth: Number of Counters hit in the CRV
+      h_nHitCounters = new TH1F("h_nHitCounters", "Number of Counters Hit in the CRV", 20,-0.5, 19.5);
+      h_nHitCounters->SetXTitle("Number of Counters");
+
+      /*
+      h_crvinfomcplane_primaryZ_vs_X = new TH2F("h_crvinfomcplane_primaryZ_vs_X", "MC Truth: Location where Primary Hit CRV", 100,-100, 60, 100,-100, 120); 
+      h_crvinfomcplane_primaryZ_vs_X->SetXTitle("z (m)");
+      h_crvinfomcplane_primaryZ_vs_X->SetYTitle("x (m)");
+      h_crvinfomcplane_primaryZ_vs_X->SetStats(false);*/
+      
+    }
+
 }
 
 
@@ -302,6 +327,10 @@ void deleteHists()
   h_de_t0_minus_demcpri_t0->Delete();
   h_neutronKE->Delete();
   h_neutronKE_noCRV->Delete();
+  h_crvsummarymc_total_E_dep->Delete();
+  h_nHitCounters->Delete();
+  //h_crvinfomcplane_primaryZ_vs_X->Delete();
+
 
   // g_crvinfomc_z0_vs_x0->Delete(); 
   // g_crvinfomc_z0_vs_y0->Delete();
@@ -463,6 +492,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
       cout << "Number of pi+ events = " << tree->GetEntries(cuts + "demcgen.pdg==211")  << endl;
 
       cout << "Number of events without CRV coincidences = " << tree->GetEntries(cuts + "@crvinfo.size()<1") << endl;
+      
      
       cout << "\nOther reconstructed events:" << endl;
       tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>211","");
@@ -470,6 +500,17 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
       tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg:demc.pdg:deent.mom",cuts +  "abs(demcgen.pdg)!=13" + "@crvinfo.size()<1","");
       cout << "\n" << endl;  
 
+      cout << "Muon events without CRV coincidences:" << endl;
+      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg:demc.pdg:deent.mom",cuts +  "abs(demcgen.pdg)=13" + "@crvinfo.size()<1","");
+
+      cout << "\nPrimary particles (demcgen.pdg)" << endl;
+      double totalEvs = tree->GetEntries(cuts+"@crvinfo.size()<1");
+      cout << "Fraction of unvetoed events from neutrons = " << tree->GetEntries(cuts + "demcgen.pdg==2112" +"@crvinfo.size()<1") / totalEvs  << endl;
+      cout << "Fraction of unvetoed events from protons = " << tree->GetEntries(cuts + "demcgen.pdg==2212" +"@crvinfo.size()<1") / totalEvs  << endl;
+      cout << "Fraction of unvetoed events from mu+s = " << tree->GetEntries(cuts + "demcgen.pdg==13"+"@crvinfo.size()<1") /totalEvs  << endl;
+      cout << "Fraction of unvetoed events from mu-s = " << tree->GetEntries(cuts + "demcgen.pdg==-13"+"@crvinfo.size()<1") /totalEvs  << endl;
+      cout << "Fraction of unvetoed events from pi-s =" << tree->GetEntries(cuts + "demcgen.pdg==-211"+"@crvinfo.size()<1") / totalEvs  << endl;
+      cout << "Number of pi+ events = " << tree->GetEntries(cuts + "demcgen.pdg==211"+"@crvinfo.size()<1") /totalEvs << endl;
      
     }
 
@@ -573,10 +614,6 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   canv->cd();
   h_crvinfomc_primaryX->SetTitle("crvinfomc._primaryX");
   h_crvinfomc_primaryX->SetXTitle("Primary Particle x Pos at Gen Plane (m)");
-  if (makeCuts)
-    h_crvinfomc_primaryX->SetBins(100, -80, 80);
-  else
-    h_crvinfomc_primaryX->SetBins(100, -80, 80); 
   h_crvinfomc_primaryX->Draw();
   canv->SaveAs(("../Plots/crvinfomc_primaryX" + cutIdentifier + filetype).c_str());
   logCanv->cd();
@@ -588,10 +625,6 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   h_crvinfomc_primaryY = (TH1F*) gDirectory->Get("h_crvinfomc_primaryY");
   h_crvinfomc_primaryY->SetTitle("crvinfomc._primaryY");
   h_crvinfomc_primaryY->SetXTitle("Primary Particle y Pos at Gen Plane (m)");
-  if (makeCuts)
-    h_crvinfomc_primaryY->SetBins(100, 15.364, 15.410);
-  else
-  h_crvinfomc_primaryY->SetBins(100, 15.364, 15.410); 
   canv->cd();
   h_crvinfomc_primaryY->Draw();
   canv->SaveAs(("../Plots/crvinfomc_primaryY" + cutIdentifier + filetype).c_str());
@@ -604,10 +637,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   h_crvinfomc_primaryZ = (TH1F*) gDirectory->Get("h_crvinfomc_primaryZ");
   h_crvinfomc_primaryZ->SetTitle("crvinfomc._primaryZ");
   h_crvinfomc_primaryZ->SetXTitle("Primary Particle z Pos at Gen Plane (m)");
-  if (makeCuts)
-    h_crvinfomc_primaryZ->SetBins(100, -80, 80);
-  else
-    h_crvinfomc_primaryZ->SetBins(100, -80,80); 
+  
   canv->cd();
   h_crvinfomc_primaryZ->Draw();
   canv->SaveAs(("../Plots/crvinfomc_primaryZ" + cutIdentifier + filetype).c_str());
@@ -901,6 +931,34 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   canv->Update();
   canv->SaveAs(("../Plots/demc_oposy_vs_oposx" + cutIdentifier + filetype).c_str());
 
+
+  if (INC_CRV_SUMMARIES)
+    {
+      // MC Truth, total energy deposited in the CRV 
+      tree->Draw("crvsummarymc._totalEnergyDeposited>>+h_crvsummarymc_total_E_dep",cuts, "goff");
+      h_crvsummarymc_total_E_dep = (TH1F*) gDirectory->Get("h_crvsummarymc_total_E_dep");
+      canv->cd();
+      h_crvsummarymc_total_E_dep->Draw();
+      canv->SaveAs(("../Plots/total_E_dep" + cutIdentifier + filetype).c_str());
+
+
+      // MC Truth, number of counters hit xin the CRV 
+      tree->Draw("crvsummarymc._nHitCounters>>+h_nHitCounters",cuts, "goff");
+      h_nHitCounters = (TH1F*) gDirectory->Get("h_nHitCounters");
+      canv->cd();
+      h_nHitCounters->Draw();
+      canv->SaveAs(("../Plots/nHitCounters" + cutIdentifier + filetype).c_str());
+
+
+      //MC Truth location where primary reached the CRV
+      canv->cd();
+      tree->Draw("crvinfomcplane._primaryZ:crvinfomcplane._primaryX", cuts);
+      g_crvinfomcplane_primaryZ_vs_X = (TGraph*) gPad->GetPrimitive("Graph");
+      g_crvinfomcplane_primaryZ_vs_X->SetTitle("MCTruth Position where Primary Reached CRV;z position (mm);x position (mm)");
+      canv->Update();
+      canv->SaveAs(("../Plots/crvinfomcplane_primaryZ_vs_X" + cutIdentifier + filetype).c_str());
+
+    }
 
   //Clean up
   canv->Close();
