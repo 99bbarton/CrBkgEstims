@@ -2,4 +2,6 @@
 *\#
 *.png
 *.log
-SubmissionLists/Fcl_files/*
+SubmissionScripts/Fcl_files/*
+SubmissionScripts/Logs/*
+SubmissionScripts/SubmissionLists/*

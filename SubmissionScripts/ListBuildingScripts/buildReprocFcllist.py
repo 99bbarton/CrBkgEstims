@@ -1,45 +1,35 @@
-#Find fcl files corresponding to jobs which failed silently or were held
+#Script to locate missing output files from a job, identify which fcl they corresponded to, and build a list of those fcls
 
 import os
 
-fileName = input("Enter the filename of the dig.*.art files which were successfully produced:\n")
+inFilename = input("Enter the name of the file containg a list of output files: ")
+inFile = open(inFilename, "r")
+lines = inFile.readlines()
+inFile.close()
+
+goodNums = []
 
 
-completedJobsFile = open(fileName, "r")
-
-numbers = []
-for line in completedJobsFile.readlines():
-    numbers.append(int(line.split("/")[10])) #Extract the directory number from the path
-
-
-pathToFcl = input("Enter a path to the the directory containing fcl files:\n")
-
-fclFiles = os.listdir(pathToFcl)
-
-outDir = input("Enter an output directory name :")
-editPath = "/mu2e/app/users/bbarton/CrBkgEstims/SubmissionScripts/Fcl_files/" + outDir + "/"
-finalPath = "/pnfs/mu2e/scratch/users/bbarton/workflow/" + outDir + "/"
-
-os.mkdir(editPath)
-os.mkdir(finalPath)
-
-print("Made edit directory: " + editPath)
-print("Made final directory: " + finalPath)
-
-appendLine = "physics.analyzers.digiCompressionCheck.checkTrackerDuplicateSteps : false"
-
-print("Copying files from original location, appending duplicate error fix, and copying back to pnfs...")
-
-
-for num in range(len(fclFiles)):
-    if num not in numbers:
-        os.system("cp " + pathToFcl + fclFiles[num] + " " + editPath) #Copy the desired fcl files to local dir for edit
+for line in lines:
+    dirNum = line.split("/")[-2] #The number of the directory is the second to last item
+    goodNums.append(int(dirNum))
     
-        #Add the modification to the fcl file
-        fclFile = open(editPath + fclFiles[num], "a")
-        fclFile.write("\n ##Line added when reprocessing\n")
-        fclFile.write(appendLine)
-        fclFile.close()
+#print(len(goodNums))
 
-        #Copy the file to pnfs
-        os.system("cp " + editPath + fclFiles[num] + " " + finalPath)
+fclDir = input("Enter the directory containing the corresponding fcl files: ")
+path = "/pnfs/mu2e/scratch/users/bbarton/workflow/" + fclDir + "/"
+fclFiles = os.listdir(path)
+
+#print(len(fclFiles))
+
+outFilename = input("Enter a name for the output file: ")
+outFile = open(outFilename, "w")
+
+for fclNum in range(len(fclFiles)):
+    if fclNum not in goodNums:
+        outFile.write(path + fclFiles[fclNum] + "\n")
+
+outFile.close()
+        
+        
+        
