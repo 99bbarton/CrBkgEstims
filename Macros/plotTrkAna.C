@@ -381,9 +381,9 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string max_trans_R = "(deent.d0+2.0/deent.om)>450. && (deent.d0+2.0/deent.om)<680."; //  Inconsistent with hitting the proton absorber
   string timing_cut = "de.t0>700 && de.t0<1695"; // This is the standard window
   string all_cuts_MDC = momentum_cut + "&&" + no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R;
-  string signalCuts = all_cuts_MDC + "&&" + trk_cut_pid + "&&" + timing_cut;
-  string noMom = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid + "&&" + timing_cut; 
-  string physicsCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid + "&&" + timing_cut + "&&" + signal_mom_cut;
+  string signalCuts = all_cuts_MDC + "&&" + trk_cut_pid;// + "&&" + timing_cut;
+  string noMom = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid;// + "&&" + timing_cut; 
+  string physicsCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid +/* "&&" + timing_cut + */"&&" + signal_mom_cut;
   
   //Alternative cuts
   string d0is0 = "demcent.d0==0";
@@ -404,9 +404,9 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string chisqrd_dof = "(de.chisq / de.ndof) > 0 && (de.chisq / de.ndof) < 5";
   string mom = "deent.mom > 90.5 && deent.mom < 92.5";
   string t0 = "de.t0 > 700 && de.t0 < 1695";
-  string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0; //std cuts
+  string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom;//+"&&"+t0; //std cuts
   // string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid + trk qual
-  string ePlus_noMom = nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+t0;
+  string ePlus_noMom = nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof;//+"&&"+t0;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //Read tree from file
