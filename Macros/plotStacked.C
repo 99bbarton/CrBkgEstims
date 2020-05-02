@@ -405,7 +405,7 @@ void plotStacked(string sample)
   if (NEGATIVE)
     {
       cuts[0] = "";
-      cutIDs[0] = "";
+      cutIDs[0] = "noCuts";
       cuts[1] = expMomCuts;
       cutIDs[1] = "expMomCuts";
       // cuts[2] = physCuts;
@@ -414,7 +414,7 @@ void plotStacked(string sample)
   else
     {
       cuts[0] = "";
-      cutIDs[0] = "";
+      cutIDs[0] = "noCuts";
       cuts[1] = ePlusCuts;
       cutIDs[1] = "stdCuts";
       // cuts[2] = ePlusCutsPlus;
@@ -492,40 +492,54 @@ void plotStacked(string sample)
 	  hLo = (TH1F*) gDirectory->Get("hLo");
 
 	  //Scale by livetimes if cuts are applied
+	  double lt_hi = 1; //Livetimes to scale num of entries by
+	  double lt_lo = 1; 
 	  if (cutN == 1){
 	    if (sample == "2025")
 	      {
-		hHi->Scale(1.0 / LT_2025_HI_EXPMOM);
-		hLo->Scale(1.0 / LT_2025_LO_EXPMOM);
+		lt_hi = LT_2025_HI_EXPMOM;
+		lt_lo = LT_2025_LO_EXPMOM;
 	      }
 	    else if (sample == "2030")
 	      {
-		hHi->Scale(1.0 / LT_2030_HI_EXPMOM);
-		hLo->Scale(1.0 / LT_2030_LO_EXPMOM);
+		lt_hi = LT_2025_HI_EXPMOM;
+		lt_lo = LT_2025_LO_EXPMOM;
 	      }
+	    hHi->Scale(1.0 / lt_hi);
+	    hLo->Scale(1.0 / lt_lo);
 	  }
 
 	  //Set plot style
 	  hHi->SetLineColor(kBlue);
 	  hLo->SetLineColor(kRed);
 
+	  hHi->SetFillColorAlpha(kBlue, 0.2);
+	  hLo->SetFillColorAlpha(kRed, 0.2);
+
 	  //Label plots
-	  hHi->SetTitle((params.title + " : " + cutIDs[cutN]).c_str());
+	  /*  hHi->SetTitle((params.title + " : " + cutIDs[cutN]).c_str());
 	  hLo->SetTitle((params.title + " : " + cutIDs[cutN]).c_str());
 	  hHi->SetXTitle(params.xTitle.c_str());
-	  hLo->SetXTitle(params.xTitle.c_str());
+	  hLo->SetXTitle(params.xTitle.c_str());*/
 	 
 	  //Build the stack
-	  THStack *stack = new THStack("stack","");
+	  THStack *stack = new THStack("stack",(sample + ": " + params.title + " : " + cutIDs[cutN]).c_str());
 	  stack->Add(hHi);
 	  stack->Add(hLo);
-	  stack->Draw();
+	  stack->Draw("hist");
+	  stack->GetXaxis()->SetTitle(params.xTitle.c_str());
+
+	 
 	  
 
 	  //Add legend
-	  TLegend *leg = new TLegend(0.75,0.7,0.85,0.9,"Entries");
-	  leg->AddEntry(hHi,Form("Hi: %d", (int)hHi->GetEntries()),"l");
-	  leg->AddEntry(hLo,Form("Lo: %d", (int)hLo->GetEntries()),"l");
+	  TLegend *leg;
+	  if(cutN > 0)
+	    leg = new TLegend(0.75,0.7,0.85,0.9, "Entries/Year:");
+	  else
+	    leg = new TLegend(0.75,0.7,0.85,0.9, "Entries:");
+	  leg->AddEntry(hHi,Form("Hi: %.2lf", hHi->GetEntries()/lt_hi),"l");
+	  leg->AddEntry(hLo,Form("Lo: %.2f", hLo->GetEntries()/lt_lo),"l");
 	  leg->Draw("same");
 
 	  //Build a filename and save plots
