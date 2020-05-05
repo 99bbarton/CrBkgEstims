@@ -12,10 +12,15 @@ const bool INC_TRKQUAL_SFX = false; //Prior to mid-July 2019, dequal leaves were
 const bool INC_CRV_SUMMARIES = true; //Set to true if examining tree with Ralf's CRV summary leaves
 
 
+//Livetimes of samples with various cuts
 const double LT_2025_HI_EXPMOM = 50;
 const double LT_2025_LO_EXPMOM = 1479;
 const double LT_2030_HI_EXPMOM = 50;
 const double LT_2030_LO_EXPMOM = 1482;
+const double LT_2025_HI_NOCUTS = 12337;
+const double LT_2025_LO_NOCUTS = 471297;
+const double LT_2030_HI_NOCUTS = 11519;
+const double LT_2030_LO_NOCUTS = 488245;
 
 /**********************************************************************************************************************************************************************************/
 ///////////////////////////////////////////////////////////////   Input Files    ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -505,10 +510,22 @@ void plotStacked(string sample)
 		lt_hi = LT_2025_HI_EXPMOM;
 		lt_lo = LT_2025_LO_EXPMOM;
 	      }
-	    hHi->Scale(1.0 / lt_hi);
-	    hLo->Scale(1.0 / lt_lo);
 	  }
+	  else if(cutN == 0){
+	      if (sample == "2025")
+	      {
+		lt_hi = LT_2025_HI_NOCUTS;
+		lt_lo = LT_2025_LO_NOCUTS;
+	      }
+	    else if (sample == "2030")
+	      {
+		lt_hi = LT_2025_HI_NOCUTS;
+		lt_lo = LT_2025_LO_NOCUTS;
+	      }
+	    }
 
+	  hHi->Scale(1.0 / lt_hi);
+	    hLo->Scale(1.0 / lt_lo);
 	  //Set plot style
 	  hHi->SetLineColor(kBlue);
 	  hLo->SetLineColor(kRed);
