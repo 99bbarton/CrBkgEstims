@@ -7,11 +7,8 @@
 ///////////////////////////////////////////////////////////////   Control Params & Livetimes  //////////////////////////////////////////////////////////////////////////////////////
 
 const int NCUTS = 1; //Number of cut variations to plot (not including no cuts as a variation)
-const bool NEGATIVE = true; //Look at the negative tree (electrons)
 const bool INC_TRKQUAL_SFX = false; //Prior to mid-July 2019, dequal leaves were named with suffixes - set to true to read trees prior to this date
-const bool INC_CRV_SUMMARIES = true; //Set to true if examining tree with Ralf's CRV summary leaves
-
-
+const bool INC_CRV_SUMMARIES = false; //Set to true if examining tree with Ralf's CRV summary leaves
 
 
 /**********************************************************************************************************************************************************************************/
@@ -23,15 +20,12 @@ TFile file_2025_lo_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/lo2025_r
 //TFile file_2025_hi("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/hi2025.root");
 //TFile file_2025_lo("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/lo2025.root");
 
-// 2030 Sample
-TFile file_2030_hi_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/hi2030_ralfsAdds.root"); //summs sufix denotes addition of Ralf's CRV summary branches
-TFile file_2030_lo_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/lo2030_ralfsAdds.root");
-//TFile file_2030_hi("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/hi2030.root");
-//TFile file_2030_lo("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/lo2030.root");
-
 //CRY1 and CRY2 samples
 TFile  file_CRY2("/mu2e/data/users/bbarton/CRY2/TrkAnaTrees/cry2_new15July2019.root");
-TFile  file_CRY("/mu2e/data/users/bbarton/CRY1/TrkAnaTrees/cry1_new24July2019.root");
+TFile  file_CRY1("/mu2e/data/users/bbarton/CRY1/TrkAnaTrees/cry1_new24July2019.root");
+
+//DBY Sample
+TFile file_DBY("/mu2e/data/users/oksuzian/CRVnTupleAllTracks.root");
 
 
 //Livetimes of samples with various cuts
@@ -45,7 +39,10 @@ const double LT_2030_HI_NOCUTS = 11519;
 const double LT_2030_LO_NOCUTS = 488245;
 const double LT_CRY1_NOCUTS = 0.052 * 1e7 / 2.46e6; 
 const double LT_CRY1_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+const double LT_CRY2_NOCUTS = 0.167 * 1e7 / 2.46e6; 
+const double LT_CRY2_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+const double LT_DBY_NOCUTS = 0.535 * 1e7 / 2.46e6; 
+const double LT_DBY_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 /**********************************************************************************************************************************************************************************/
 
@@ -62,6 +59,7 @@ typedef struct{
   int nBins[NCUTS + 1];
   string xTitle;
   string title;
+  string varExpr; 
 } histParams;
 
 //This seems clunky but is the most efficient way to define a scalable number of histograms with predefined characteristics. Initializing new Histograms for each would be
@@ -73,7 +71,8 @@ vector<histParams> hist_params;
 void defHistParams()
 {
   histParams params_crvinfomc_x0;
-  params_crvinfomc_x0.title = "crvinfomc._x[0]";
+  params_crvinfomc_x0.varExpr = "crvinfomc._x[0]";
+  params_crvinfomc_x0.title = "Primary x-posiition at the CRV";
   params_crvinfomc_x0.xTitle = "MC Truth: x at CRV (mm)";
   params_crvinfomc_x0.xMins[0] = -7000; //No cut limits
   params_crvinfomc_x0.xMaxs[0] = 0;
@@ -284,6 +283,7 @@ void defHistParams()
 
   histParams params_pz_p;
   params_pz_p.title = "p_z / p = cos(#theta)";
+  params_pz_p.varExpr = "demcpri.momz/sqrt((demcpri.momx*demcpri.momx)+(demcpri.momy*demcpri.momy)+(demcpri.momz*demcpri.momz))";
   params_pz_p.xTitle = "cos(#theta)";
   params_pz_p.xMins[0] = -1; //No cuts params
   params_pz_p.xMaxs[0] = 1;
@@ -352,6 +352,19 @@ void defHistParams()
   // params_demcpri_mom.nBins[2] = 100;
   hist_params.push_back(params_demcpri_mom);
 
+
+  histParams params_CRVtop;
+  params_CRVtop.varExpr = "crvinfomc._z[0]/1000.";
+  params_CRVtop.title = "MCTruth: Number of Events/Module/2.46e6s";
+  params_CRVtop.xTitle = "z [m]";
+  params_CRVtop.xMins[0] = -2.1526; 
+  params_CRVtop.xMaxs[0] = 18.5474;
+  params_CRVtop.nBins[0] = 25;
+  params_CRVtop.xMins[1] = -2.1526;
+  params_CRVtop.xMaxs[1] = 18.5474;
+  params_CRVtop.nBins[1] = 25;
+  hist_params.push_back(params_CRVtop);
+
 }
 
 
@@ -361,7 +374,7 @@ void defHistParams()
 
 //Makes stacked plots of hi and lo for each histParam struct in defHistParams()
 //Files are saved as pngs/pdfs
-void plotStacked(string sample)
+void plotAllComparisons()
 {
   if (NCUTS < 1)
     {
@@ -397,86 +410,30 @@ void plotStacked(string sample)
   string noMomCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid;// + "&&" + timing_cut; 
   string physCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid +/* "&&" + timing_cut + */"&&" + physics_mom;
   
-  ///////////////////////////////////////////////////////////// e^+ cuts //////////////////////////////////////////////////////////////////////////////////
-  string nactive = "de.nactive > 20 && de.nactive < 200";
-  string nhits_minus_nactive = "(de.nhits - de.nactive) > 0 && (de.hits - de.nactive) < 5";
-  string perr = "deent.momerr > 0 && deent.momerr < 0.4";
-  string t0err = "de.t0err> 0 && de.t0err < 1.5";
-  string tandip = "deent.td > 0.57";
-  string d0 = "-1*deent.d0 > -100 && -1*deent < 100";
-  string rmax = "abs(deent.d0+2.0/deent.om)>430. && abs(deent.d0+2.0/deent.om)<690.";
-  string chisqrd_dof = "(de.chisq / de.ndof) > 0 && (de.chisq / de.ndof) < 5";
-  string mom = "deent.mom > 90.5 && deent.mom < 92.5";
-  string t0 = "de.t0 > 700 && de.t0 < 1695";
-  string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0; //std cuts
-  string ePlusCutsPlus =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid, trk qual
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   //Cut lists & identifiers // Add any additional cuts that you want to make to this list
   string cuts[NCUTS + 1];
   string cutIDs[NCUTS + 1];
-
-  if (NEGATIVE)
-    {
-      cuts[0] = "";
-      cutIDs[0] = "noCuts";
-      cuts[1] = expMomCuts;
-      cutIDs[1] = "expMomCuts";
-      // cuts[2] = physCuts;
-      // cutIDs[2] = "physCuts";
-    }
-  else
-    {
-      cuts[0] = "";
-      cutIDs[0] = "noCuts";
-      cuts[1] = ePlusCuts;
-      cutIDs[1] = "stdCuts";
-      // cuts[2] = ePlusCutsPlus;
-      // cutIDs[2] = "stdCuts-PID-TrkQual";
-    }
+  cuts[0] = "";
+  cutIDs[0] = "noCuts";
+  cuts[1] = expMomCuts;
+  cutIDs[1] = "expMomCuts";
+  // cuts[2] = physCuts;
+  // cutIDs[2] = "physCuts";
 
   defHistParams(); //Define the histograms to be made
 
   gStyle->SetOptStat(0);
 
   //Read the trees
-  TTree *tree_hi;
-  TTree *tree_lo;
+  TTree *tree_hi = (TTree*) file_2025_hi_summs.Get("TrkAnaNeg/trkana");
+  TTree *tree_lo = (TTree*) file_2025_lo_summs.Get("TrkAnaNeg/trkana");
+  TTree *tree_CRY1 = (TTree*) file_CRY1.Get("TrkAnaNeg/trkana");
+  TTree *tree_CRY2 = (TTree*) file_CRY2.Get("TrkAnaNeg/trkana");
+  TTree *tree_DBY = (TTree*) file_DBY.Get("allTracks");
 
-  if (NEGATIVE) {
-    if (sample == "2025"){
-      tree_hi = (TTree*) file_2025_hi_summs.Get("TrkAnaNeg/trkana");
-      tree_lo = (TTree*) file_2025_lo_summs.Get("TrkAnaNeg/trkana");
-    }
-    else if (sample == "2030"){
-      tree_hi = (TTree*) file_2030_hi_summs.Get("TrkAnaNeg/trkana");
-      tree_lo = (TTree*) file_2030_lo_summs.Get("TrkAnaNeg/trkana");
-    }
-    else
-      {
-	cout << "Unrecognized year" << endl;
-	exit(1);
-      }
-  }
-  else
-    {
-      if (sample == "2025"){
-	tree_hi = (TTree*) file_2025_hi_summs.Get("TrkAnaPos/trkana");
-	tree_lo = (TTree*) file_2025_lo_summs.Get("TrkAnaPos/trkana");
-      }
-      else if (sample == "2030"){
-	tree_hi = (TTree*) file_2030_hi_summs.Get("TrkAnaPos/trkana");
-	tree_lo = (TTree*) file_2030_lo_summs.Get("TrkAnaPos/trkana");
-      }
-      else
-      {
-	cout << "Unrecognized year" << endl;
-	exit(1);
-      }
-    }
-
-
-  TCanvas *canv = new TCanvas("canv",("Stacked Plots - " + sample).c_str(),1800,600);
+  TCanvas *canv = new TCanvas("canv","Sample Comparisons",1800,600);
 
   for (int cutN = 0; cutN <= NCUTS; cutN++) //For each cut
     {
@@ -487,94 +444,101 @@ void plotStacked(string sample)
 
 	  //Define the histograms based on predefined settings
 	  TH1F *hHi = new TH1F("hHi", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
-	  TH1F *hLo = new TH1F("hLo", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);;
+	  TH1F *hLo = new TH1F("hLo", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
+	  TH1F *hCRY1 = new TH1F("hCRY1", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
+	  TH1F *hCRY2 = new TH1F("hCRY2", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
+	  TH1F *hDBY = new TH1F("hDBY", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 
-	  if (params.title == "p_z / p = cos(#theta)") //Title of this hist is not the expression for which to fill it so it must be treated as a special case
-	    {
-	      tree_hi->Draw(Form("%s>>+hHi","demcpri.momz/sqrt((demcpri.momx*demcpri.momx)+(demcpri.momy*demcpri.momy)+(demcpri.momz*demcpri.momz))"),cuts[cutN].c_str(),"goff");
-	      tree_lo->Draw(Form("%s>>+hLo","demcpri.momz/sqrt((demcpri.momx*demcpri.momx)+(demcpri.momy*demcpri.momy)+(demcpri.momz*demcpri.momz))"),cuts[cutN].c_str(),"goff");
-	    }
+	  //Get data from trees and store in histograms
+	  string expr;
+	  if (params.varExpr != "")
+	    expr = params.varExpr;
 	  else
-	    {
-	      //Get data from trees and store in histograms
-	      tree_hi->Draw(Form("%s>>+hHi", params.title.c_str()), cuts[cutN].c_str() , "goff");
-	      tree_lo->Draw(Form("%s>>+hLo", params.title.c_str()), cuts[cutN].c_str(), "goff");
-	    }
+	    expr = params.title;
+	  tree_hi->Draw(Form("%s>>+hHi", expr.c_str()), cuts[cutN].c_str() , "goff");
+	  tree_lo->Draw(Form("%s>>+hLo", expr.c_str()), cuts[cutN].c_str(), "goff");
+	  tree_CRY1->Draw(Form("%s>>+hCRY1", expr.c_str()), cuts[cutN].c_str() , "goff");
+	  tree_CRY2->Draw(Form("%s>>+hCRY2", expr.c_str()), cuts[cutN].c_str(), "goff");
+	  tree_DBY->Draw(Form("%s>>+hDBY", expr.c_str()), cuts[cutN].c_str() , "goff");
 	  
 	  
 	  hHi = (TH1F*) gDirectory->Get("hHi");
 	  hLo = (TH1F*) gDirectory->Get("hLo");
+	  hDBY = (TH1F*)gDirectory->Get("hDBY");
+	  hCRY2 = (TH1F*)gDirectory->Get("hCRY2");
+	  hCRY1 = (TH1F*)gDirectory->Get("hCRY1");
 
 	  //Scale by livetimes if cuts are applied
 	  double lt_hi = 1; //Livetimes to scale num of entries by
 	  double lt_lo = 1; 
+	  double lt_CRY1 = 1;
+	  double lt_CRY2 = 1;
+	  double lt_DBY = 1;
 	  if (cutN == 1){
-	    if (sample == "2025")
-	      {
-		lt_hi = LT_2025_HI_EXPMOM;
-		lt_lo = LT_2025_LO_EXPMOM;
-	      }
-	    else if (sample == "2030")
-	      {
-		lt_hi = LT_2030_HI_EXPMOM;
-		lt_lo = LT_2030_LO_EXPMOM;
-	      }
+	    lt_hi = LT_2025_HI_EXPMOM;
+	    lt_lo = LT_2025_LO_EXPMOM;
+	    lt_DBY = LT_DBY_EXPMOM;
+	    lt_CRY1 = LT_CRY1_EXPMOM;
+	    lt_CRY2 = LT_CRY2_EXPMOM;
 	  }
 	  else if(cutN == 0){
-	      if (sample == "2025")
-	      {
-		lt_hi = LT_2025_HI_NOCUTS;
-		lt_lo = LT_2025_LO_NOCUTS;
-	      }
-	    else if (sample == "2030")
-	      {
-		lt_hi = LT_2030_HI_NOCUTS;
-		lt_lo = LT_2030_LO_NOCUTS;
-	      }
-	    }
-
+	    lt_hi = LT_2025_HI_NOCUTS;
+	    lt_lo = LT_2025_LO_NOCUTS;
+	    lt_DBY = LT_DBY_NOCUTS;
+	    lt_CRY1 = LT_CRY1_NOCUTS;
+	    lt_CRY2 = LT_CRY2_NOCUTS;
+	   
+	  }
 	  hHi->Scale(1.0 / lt_hi);
-	    hLo->Scale(1.0 / lt_lo);
+	  hLo->Scale(1.0 / lt_lo);
+	  hCRY1->Scale(1.0 / lt_CRY1);
+	  hCRY2->Scale(1.0 / lt_CRY2);
+	  hDBY->Scale(1.0 / lt_DBY);
+
 	  //Set plot style
 	  hHi->SetLineColor(kBlue);
-	  hLo->SetLineColor(kRed);
+	  hLo->SetLineColor(kViolet);
+	  hCRY1->SetLineColor(kMagenta);
+	  hCRY2->SetLineColor(kRed);
+	  hDBY->SetLineColor(kGreen);
 
-	  hHi->SetFillColorAlpha(kBlue, 0.2);
-	  hLo->SetFillColorAlpha(kRed, 0.2);
+	  /*
+	  hHi->SetFillColor(kBlue);
+	  hLo->SetFillColor(kViolet);
+	  hCRY1->SetFillColor(kMagenta);
+	  hCRY2->SetFillColor(kRed);
+	  hDBY->SetFillColor(kGreen);
+	  */
 
-	  //Label plots
-	  /*  hHi->SetTitle((params.title + " : " + cutIDs[cutN]).c_str());
-	  hLo->SetTitle((params.title + " : " + cutIDs[cutN]).c_str());
-	  hHi->SetXTitle(params.xTitle.c_str());
-	  hLo->SetXTitle(params.xTitle.c_str());*/
 	 
-	  //Build the stack
-	  THStack *stack = new THStack("stack",(sample + ": " + params.title + " : " + cutIDs[cutN]).c_str());
+	  //Build the stack of hi and lo samples and draw all of the histograms
+	  THStack *stack = new THStack("stack",(params.title + " : " + cutIDs[cutN]).c_str());
 	  stack->Add(hHi);
 	  stack->Add(hLo);
 	  stack->Draw("hist");
 	  stack->GetXaxis()->SetTitle(params.xTitle.c_str());
-
+	  
+	  hCRY1->Draw("same hist");
+	  hCRY2->Draw("same hist");
+	  hDBY->Draw("same hist");
 	 
 	  
-
 	  //Add legend
-	  TLegend *leg;
-	  if(cutN > 0)
-	    leg = new TLegend(0.75,0.7,0.85,0.9, "Entries/Year:");
-	  else
-	    leg = new TLegend(0.75,0.7,0.85,0.9, "Entries:");
-	  leg->AddEntry(hHi,Form("Hi: %.2lf", hHi->GetEntries()/lt_hi),"l");
-	  leg->AddEntry(hLo,Form("Lo: %.2f", hLo->GetEntries()/lt_lo),"l");
+	  TLegend *leg = new TLegend(0.5,0.5,0.85,0.9, "Entries/Year:");
+	  leg->AddEntry(hHi,Form("Hi: %.1lf", hHi->Integral()),"l");
+	  leg->AddEntry(hLo,Form("Lo: %.1f", hLo->Integral()),"l");
+	  leg->AddEntry("hDBY",Form("DBY: %0.1f events", hDBY->Integral()),"l");
+	  leg->AddEntry("hCRY2",Form("CRY2: %0.1f events", hCRY2->Integral()),"l");
+	  leg->AddEntry("hCRY1",Form("CRY1: %0.1f events", hCRY1->Integral()),"l");
 	  leg->Draw("same");
 
 	  //Build a filename and save plots
 	  std::string plot_name;
-	  plot_name.reserve(params.title.size() + 7);
-	  plot_name += "stacked_";
+	  plot_name.reserve(params.title.size() + 11);
+	  plot_name += "comparison_";
 	  for(size_t i = 0; i < params.title.size(); ++i)
 	    {
-	      if(params.title[i] != ']' && params.title[i] != '[' && params.title[i] != '.') 
+	      if(params.title[i] != ']' && params.title[i] != '[' && params.title[i] != '.' && params.title[i] != " ") 
 		plot_name += params.title[i];
 	      if(params.title[i] == '.' && params.title[i+1] != '_')
 		plot_name += "_";
@@ -584,14 +548,17 @@ void plotStacked(string sample)
 	    plot_name = "comp_pz_p";
 
 	  if (cutN > 0)
-	    canv->SaveAs(Form("../Plots/StackedPlots/%s_%s.png", plot_name.c_str(), cutIDs[cutN].c_str()));
+	    canv->SaveAs(Form("../Plots/ComparisonPlots/%s_%s.png", plot_name.c_str(), cutIDs[cutN].c_str()));
 	  else
-	    canv->SaveAs(Form("../Plots/StackedPlots/%s.png", plot_name.c_str()));
+	    canv->SaveAs(Form("../Plots/ComparisonPlots/%s.png", plot_name.c_str()));
 	   
 
 	  //Clean up
 	  hHi->Delete();
 	  hLo->Delete();
+	  hCRY1->Delete();
+	  hCRY2->Delete();
+	  hDBY->Delete();
 	  stack->Delete();
 	  leg->Delete();
 
