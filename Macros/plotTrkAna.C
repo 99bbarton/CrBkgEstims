@@ -361,7 +361,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 
   //Signal cuts
   string momentum_cut = "deent.mom>100 && deent.mom<110"; //Use wider momentum window than experimental signal window
-  string signal_mom_cut = "deent.mom>103.75 && deent.mom<105";
+  string signal_mom_cut = "deent.mom>103.85 && deent.mom<104.9";
 
   string no_upstream = "ue.status<0";
   string trk_qual;
@@ -369,12 +369,12 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   if (INC_TRKQUAL_SFX)
     {
       trk_qual = "dequal.TrkQualDeM>0.8";; //For original CRY1 analysis this was 0.4
-      trk_cut_pid = "dequal.TrkPIDDeM>0.9";
+      trk_cut_pid = "dequal.TrkPIDDeM>0.95"; //Was 0.9 until 4/27
     }
   else
     {
       trk_qual = "dequal.TrkQual>0.8";; //For original CRY1 analysis this was 0.4
-      trk_cut_pid = "dequal.TrkPID>0.9";
+      trk_cut_pid = "dequal.TrkPID>0.95";
     }
   string pitch_angle = "deent.td>0.57735027 && deent.td<1"; //  Excludes beam particles
   string min_trans_R = "deent.d0>-80 && deent.d0<105"; //  Consistent with coming from the target
@@ -384,7 +384,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string signalCuts = all_cuts_MDC + "&&" + trk_cut_pid;// + "&&" + timing_cut;
   string noMom = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid;// + "&&" + timing_cut; 
   string physicsCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid +/* "&&" + timing_cut + */"&&" + signal_mom_cut;
-  
+  string noPIDnoMom = pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + no_upstream + "&&" + trk_qual;
+
   //Alternative cuts
   string d0is0 = "demcent.d0==0";
   string noMomNoPID = trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R;
@@ -399,7 +400,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string perr = "deent.momerr > 0 && deent.momerr < 0.4";
   string t0err = "de.t0err> 0 && de.t0err < 1.5";
   string tandip = "deent.td > 0.57";
-  string d0 = "-1*deent.d0 > -100 && -1*deent < 100";
+  string d0 = "-1*deent.d0 > -100 && -1*deent.d0 < 100";
   string rmax = "abs(deent.d0+2.0/deent.om)>430. && abs(deent.d0+2.0/deent.om)<690.";
   string chisqrd_dof = "(de.chisq / de.ndof) > 0 && (de.chisq / de.ndof) < 5";
   string mom = "deent.mom > 90.5 && deent.mom < 92.5";
@@ -407,7 +408,13 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom;//+"&&"+t0; //std cuts
   // string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid + trk qual
   string ePlus_noMom = nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof;//+"&&"+t0;
+  string ePlus_uestatus = ePlusCuts + "&&" + "ue.status<0";
+  string ePlus_trkqual = ePlusCuts + "&&" + trk_qual;
+  string ePlus_trkPID = ePlusCuts + "&&" + trk_cut_pid;
+  string ePlus_trkQual_PID = ePlusCuts + "&&" + trk_qual + "&&" + trk_cut_pid;
+  string ePlus_noMom_trkQual_PID = ePlus_noMom + "&&" + trk_qual + "&&" + trk_cut_pid;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   //Read tree from file
   TFile inFile(treePath.c_str());
@@ -432,6 +439,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	cuts = TCut(signalCuts.c_str());
       else if (momCut == 1)
 	cuts =TCut(physicsCuts.c_str());
+      else if (momCut == 3)
+	cuts = TCut(noPIDnoMom.c_str());
       else
 	cuts = TCut(noMom.c_str());
 
@@ -439,6 +448,10 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	{
 	  if (momCut == 1)
 	    cuts = TCut(ePlusCuts.c_str());
+	  else if (momCut == 2)
+	    cuts = TCut(ePlus_trkQual_PID.c_str());
+	  else if (momCut == 3)
+	    cuts = TCut(ePlus_noMom_trkQual_PID.c_str());
 	  else
 	    cuts = TCut(ePlus_noMom.c_str());
 	}
@@ -453,6 +466,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
       cutIdentifier = "";
     }
 
+  cout << cuts << endl;
   
   //Print out some information about the PDG of events 
   if (false) //////////////////////////////////////////////////// Change this if you want the below scans to run
@@ -966,4 +980,6 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   deleteHists();
 
 }
+
+
 

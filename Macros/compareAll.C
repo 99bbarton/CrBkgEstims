@@ -21,14 +21,14 @@ TFile file_2025_lo_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/lo2025_r
 //TFile file_2025_lo("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/lo2025.root");
 
 //CRY1 and CRY2 samples
-TFile  file_CRY2("/mu2e/data/users/bbarton/CRY2/TrkAnaTrees/cry2_new15July2019.root");
-TFile  file_CRY1("/mu2e/data/users/bbarton/CRY1/TrkAnaTrees/cry1_new24July2019.root");
+TFile  file_CRY2("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_CRY2/cry2_ralfsAdds.root");
+TFile  file_CRY1("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_CRY1/cry1_ralfsAdds.root");
 
 //DBY Sample
-TFile file_DBY("/mu2e/data/users/oksuzian/CRVnTupleAllTracks.root");
+//TFile file_DBY("/mu2e/data/users/oksuzian/CRVnTupleAllTracks.root");
 
 
-//Livetimes of samples with various cuts
+//Livetimes of samples with various cuts [effective 2.46e6s years]
 const double LT_2025_HI_EXPMOM = 50;
 const double LT_2025_LO_EXPMOM = 1479;
 const double LT_2030_HI_EXPMOM = 50;
@@ -37,12 +37,12 @@ const double LT_2025_HI_NOCUTS = 12337;
 const double LT_2025_LO_NOCUTS = 471297;
 const double LT_2030_HI_NOCUTS = 11519;
 const double LT_2030_LO_NOCUTS = 488245;
-const double LT_CRY1_NOCUTS = 0.052 * 1e7 / 2.46e6; 
-const double LT_CRY1_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-const double LT_CRY2_NOCUTS = 0.167 * 1e7 / 2.46e6; 
-const double LT_CRY2_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-const double LT_DBY_NOCUTS = 0.535 * 1e7 / 2.46e6; 
-const double LT_DBY_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+const double LT_CRY1_NOCUTS = 363; 
+const double LT_CRY1_EXPMOM = 1.6; 
+const double LT_CRY2_NOCUTS = 1390; 
+const double LT_CRY2_EXPMOM = 6.2; 
+//const double LT_DBY_NOCUTS = 
+//const double LT_DBY_EXPMOM =
 
 /**********************************************************************************************************************************************************************************/
 
@@ -431,7 +431,7 @@ void plotAllComparisons()
   TTree *tree_lo = (TTree*) file_2025_lo_summs.Get("TrkAnaNeg/trkana");
   TTree *tree_CRY1 = (TTree*) file_CRY1.Get("TrkAnaNeg/trkana");
   TTree *tree_CRY2 = (TTree*) file_CRY2.Get("TrkAnaNeg/trkana");
-  TTree *tree_DBY = (TTree*) file_DBY.Get("allTracks");
+  // TTree *tree_DBY = (TTree*) file_DBY.Get("allTracks");
 
   TCanvas *canv = new TCanvas("canv","Sample Comparisons",1800,600);
 
@@ -447,7 +447,7 @@ void plotAllComparisons()
 	  TH1F *hLo = new TH1F("hLo", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 	  TH1F *hCRY1 = new TH1F("hCRY1", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 	  TH1F *hCRY2 = new TH1F("hCRY2", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
-	  TH1F *hDBY = new TH1F("hDBY", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
+	  // TH1F *hDBY = new TH1F("hDBY", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 
 	  //Get data from trees and store in histograms
 	  string expr;
@@ -459,12 +459,12 @@ void plotAllComparisons()
 	  tree_lo->Draw(Form("%s>>+hLo", expr.c_str()), cuts[cutN].c_str(), "goff");
 	  tree_CRY1->Draw(Form("%s>>+hCRY1", expr.c_str()), cuts[cutN].c_str() , "goff");
 	  tree_CRY2->Draw(Form("%s>>+hCRY2", expr.c_str()), cuts[cutN].c_str(), "goff");
-	  tree_DBY->Draw(Form("%s>>+hDBY", expr.c_str()), cuts[cutN].c_str() , "goff");
+	  // tree_DBY->Draw(Form("%s>>+hDBY", expr.c_str()), cuts[cutN].c_str() , "goff");
 	  
 	  
 	  hHi = (TH1F*) gDirectory->Get("hHi");
 	  hLo = (TH1F*) gDirectory->Get("hLo");
-	  hDBY = (TH1F*)gDirectory->Get("hDBY");
+	  //  hDBY = (TH1F*)gDirectory->Get("hDBY");
 	  hCRY2 = (TH1F*)gDirectory->Get("hCRY2");
 	  hCRY1 = (TH1F*)gDirectory->Get("hCRY1");
 
@@ -473,18 +473,18 @@ void plotAllComparisons()
 	  double lt_lo = 1; 
 	  double lt_CRY1 = 1;
 	  double lt_CRY2 = 1;
-	  double lt_DBY = 1;
+	  //  double lt_DBY = 1;
 	  if (cutN == 1){
 	    lt_hi = LT_2025_HI_EXPMOM;
 	    lt_lo = LT_2025_LO_EXPMOM;
-	    lt_DBY = LT_DBY_EXPMOM;
+	    //   lt_DBY = LT_DBY_EXPMOM;
 	    lt_CRY1 = LT_CRY1_EXPMOM;
 	    lt_CRY2 = LT_CRY2_EXPMOM;
 	  }
 	  else if(cutN == 0){
 	    lt_hi = LT_2025_HI_NOCUTS;
 	    lt_lo = LT_2025_LO_NOCUTS;
-	    lt_DBY = LT_DBY_NOCUTS;
+	    // lt_DBY = LT_DBY_NOCUTS;
 	    lt_CRY1 = LT_CRY1_NOCUTS;
 	    lt_CRY2 = LT_CRY2_NOCUTS;
 	   
@@ -493,14 +493,14 @@ void plotAllComparisons()
 	  hLo->Scale(1.0 / lt_lo);
 	  hCRY1->Scale(1.0 / lt_CRY1);
 	  hCRY2->Scale(1.0 / lt_CRY2);
-	  hDBY->Scale(1.0 / lt_DBY);
+	  //  hDBY->Scale(1.0 / lt_DBY);
 
 	  //Set plot style
-	  hHi->SetLineColor(kBlue);
-	  hLo->SetLineColor(kViolet);
+	  hHi->SetLineColor(kBlack);
+	  hLo->SetLineColor(kBlue);
 	  hCRY1->SetLineColor(kMagenta);
 	  hCRY2->SetLineColor(kRed);
-	  hDBY->SetLineColor(kGreen);
+	  //	  hDBY->SetLineColor(kGreen);
 
 	  /*
 	  hHi->SetFillColor(kBlue);
@@ -510,24 +510,25 @@ void plotAllComparisons()
 	  hDBY->SetFillColor(kGreen);
 	  */
 
-	 
+	  hCRY1->Draw("hist");
+
 	  //Build the stack of hi and lo samples and draw all of the histograms
 	  THStack *stack = new THStack("stack",(params.title + " : " + cutIDs[cutN]).c_str());
 	  stack->Add(hHi);
 	  stack->Add(hLo);
-	  stack->Draw("hist");
+	  stack->Draw("same hist");
 	  stack->GetXaxis()->SetTitle(params.xTitle.c_str());
 	  
-	  hCRY1->Draw("same hist");
+	 
 	  hCRY2->Draw("same hist");
-	  hDBY->Draw("same hist");
+	  // hDBY->Draw("same hist");
 	 
 	  
 	  //Add legend
-	  TLegend *leg = new TLegend(0.5,0.5,0.85,0.9, "Entries/Year:");
+	  TLegend *leg = new TLegend(0.7,0.7,0.85,0.9, "Entries/Year:");
 	  leg->AddEntry(hHi,Form("Hi: %.1lf", hHi->Integral()),"l");
 	  leg->AddEntry(hLo,Form("Lo: %.1f", hLo->Integral()),"l");
-	  leg->AddEntry("hDBY",Form("DBY: %0.1f events", hDBY->Integral()),"l");
+	  //  leg->AddEntry("hDBY",Form("DBY: %0.1f events", hDBY->Integral()),"l");
 	  leg->AddEntry("hCRY2",Form("CRY2: %0.1f events", hCRY2->Integral()),"l");
 	  leg->AddEntry("hCRY1",Form("CRY1: %0.1f events", hCRY1->Integral()),"l");
 	  leg->Draw("same");
@@ -538,9 +539,9 @@ void plotAllComparisons()
 	  plot_name += "comparison_";
 	  for(size_t i = 0; i < params.title.size(); ++i)
 	    {
-	      if(params.title[i] != ']' && params.title[i] != '[' && params.title[i] != '.' && params.title[i] != " ") 
+	      if(params.title[i] != ']' && params.title[i] != '[' && params.title[i] != '.' && params.title[i] != ' ' && params.title[i] != '/') 
 		plot_name += params.title[i];
-	      if(params.title[i] == '.' && params.title[i+1] != '_')
+	      if((params.title[i] == '.' && params.title[i+1] != '_') || params.title[i] == '/')
 		plot_name += "_";
 	    }
 
@@ -558,7 +559,7 @@ void plotAllComparisons()
 	  hLo->Delete();
 	  hCRY1->Delete();
 	  hCRY2->Delete();
-	  hDBY->Delete();
+	  //	  hDBY->Delete();
 	  stack->Delete();
 	  leg->Delete();
 
