@@ -241,7 +241,7 @@ void defHistParams()
   hist_params.push_back(params_de_t0);
 
   histParams params_dequal_trkQualDeM;
-  params_dequal_trkQualDeM.title = "dequal.TrkQualDeM";
+  params_dequal_trkQualDeM.title = "dequal.TrkQual";
   params_dequal_trkQualDeM.xTitle = "Downstream e^- : Track Quality";
   params_dequal_trkQualDeM.xMins[0] = 0; //No cut params
   params_dequal_trkQualDeM.xMaxs[0] = 1;
@@ -408,8 +408,8 @@ void plotStacked(string sample)
   string chisqrd_dof = "(de.chisq / de.ndof) > 0 && (de.chisq / de.ndof) < 5";
   string mom = "deent.mom > 90.5 && deent.mom < 92.5";
   string t0 = "de.t0 > 700 && de.t0 < 1695";
-  string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0; //std cuts
-  string ePlusCutsPlus =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid, trk qual
+  string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom;//+"&&"+t0; //std cuts
+  // string ePlusCutsPlus =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid, trk qual
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //Cut lists & identifiers // Add any additional cuts that you want to make to this list

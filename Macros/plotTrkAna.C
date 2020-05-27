@@ -361,7 +361,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 
   //Signal cuts
   string momentum_cut = "deent.mom>100 && deent.mom<110"; //Use wider momentum window than experimental signal window
-  string signal_mom_cut = "deent.mom>103.75 && deent.mom<105";
+  string signal_mom_cut = "deent.mom>103.85 && deent.mom<104.9";
 
   string no_upstream = "ue.status<0";
   string trk_qual;
@@ -369,12 +369,12 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   if (INC_TRKQUAL_SFX)
     {
       trk_qual = "dequal.TrkQualDeM>0.8";; //For original CRY1 analysis this was 0.4
-      trk_cut_pid = "dequal.TrkPIDDeM>0.9";
+      trk_cut_pid = "dequal.TrkPIDDeM>0.95"; //Was 0.9 until 4/27
     }
   else
     {
       trk_qual = "dequal.TrkQual>0.8";; //For original CRY1 analysis this was 0.4
-      trk_cut_pid = "dequal.TrkPID>0.9";
+      trk_cut_pid = "dequal.TrkPID>0.95";
     }
   string pitch_angle = "deent.td>0.57735027 && deent.td<1"; //  Excludes beam particles
   string min_trans_R = "deent.d0>-80 && deent.d0<105"; //  Consistent with coming from the target
@@ -384,7 +384,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string signalCuts = all_cuts_MDC + "&&" + trk_cut_pid;// + "&&" + timing_cut;
   string noMom = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid;// + "&&" + timing_cut; 
   string physicsCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid +/* "&&" + timing_cut + */"&&" + signal_mom_cut;
-  
+  string noPIDnoMom = pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + no_upstream + "&&" + trk_qual;
+
   //Alternative cuts
   string d0is0 = "demcent.d0==0";
   string noMomNoPID = trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R;
@@ -399,7 +400,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string perr = "deent.momerr > 0 && deent.momerr < 0.4";
   string t0err = "de.t0err> 0 && de.t0err < 1.5";
   string tandip = "deent.td > 0.57";
-  string d0 = "-1*deent.d0 > -100 && -1*deent < 100";
+  string d0 = "-1*deent.d0 > -100 && -1*deent.d0 < 100";
   string rmax = "abs(deent.d0+2.0/deent.om)>430. && abs(deent.d0+2.0/deent.om)<690.";
   string chisqrd_dof = "(de.chisq / de.ndof) > 0 && (de.chisq / de.ndof) < 5";
   string mom = "deent.mom > 90.5 && deent.mom < 92.5";
@@ -407,7 +408,13 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom;//+"&&"+t0; //std cuts
   // string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+t0+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid + trk qual
   string ePlus_noMom = nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof;//+"&&"+t0;
+  string ePlus_uestatus = ePlusCuts + "&&" + "ue.status<0";
+  string ePlus_trkqual = ePlusCuts + "&&" + trk_qual;
+  string ePlus_trkPID = ePlusCuts + "&&" + trk_cut_pid;
+  string ePlus_trkQual_PID = ePlusCuts + "&&" + trk_qual + "&&" + trk_cut_pid;
+  string ePlus_noMom_trkQual_PID = ePlus_noMom + "&&" + trk_qual + "&&" + trk_cut_pid;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   //Read tree from file
   TFile inFile(treePath.c_str());
@@ -432,6 +439,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	cuts = TCut(signalCuts.c_str());
       else if (momCut == 1)
 	cuts =TCut(physicsCuts.c_str());
+      else if (momCut == 3)
+	cuts = TCut(noPIDnoMom.c_str());
       else
 	cuts = TCut(noMom.c_str());
 
@@ -439,6 +448,10 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	{
 	  if (momCut == 1)
 	    cuts = TCut(ePlusCuts.c_str());
+	  else if (momCut == 2)
+	    cuts = TCut(ePlus_trkQual_PID.c_str());
+	  else if (momCut == 3)
+	    cuts = TCut(ePlus_noMom_trkQual_PID.c_str());
 	  else
 	    cuts = TCut(ePlus_noMom.c_str());
 	}
@@ -453,6 +466,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
       cutIdentifier = "";
     }
 
+  cout << cuts << endl;
   
   //Print out some information about the PDG of events 
   if (false) //////////////////////////////////////////////////// Change this if you want the below scans to run
@@ -967,3 +981,136 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 
 }
 
+
+
+
+void scanForDuplicateEvents(string treePath, bool neg, int cutID = 2)
+{
+   /********************************************************************************************************************************************************/
+  //////////////////////////////////////////////////    Define Standard Cuts    ///////////////////////////////////////////////////////////////////////////
+
+  //Signal cuts
+  string momentum_cut = "deent.mom>100 && deent.mom<110"; //Use wider momentum window than experimental signal window
+  string signal_mom_cut = "deent.mom>103.75 && deent.mom<105";
+
+  string no_upstream = "ue.status<0";
+  string trk_qual;
+  string trk_cut_pid;
+  if (INC_TRKQUAL_SFX)
+    {
+      trk_qual = "dequal.TrkQualDeM>0.8";; //For original CRY1 analysis this was 0.4
+      trk_cut_pid = "dequal.TrkPIDDeM>0.9";
+    }
+  else
+    {
+      trk_qual = "dequal.TrkQual>0.8";; //For original CRY1 analysis this was 0.4
+      trk_cut_pid = "dequal.TrkPID>0.9";
+    }
+  string pitch_angle = "deent.td>0.57735027 && deent.td<1"; //  Excludes beam particles
+  string min_trans_R = "deent.d0>-80 && deent.d0<105"; //  Consistent with coming from the target
+  string max_trans_R = "(deent.d0+2.0/deent.om)>450. && (deent.d0+2.0/deent.om)<680."; //  Inconsistent with hitting the proton absorber
+  string timing_cut = "de.t0>700 && de.t0<1695"; // This is the standard window
+  string all_cuts_MDC = momentum_cut + "&&" + no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R;
+  string expandedMomCuts = all_cuts_MDC + "&&" + trk_cut_pid;// + "&&" + timing_cut;
+  string noMom = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid;// + "&&" + timing_cut; 
+  string physicsCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid +/* "&&" + timing_cut + */"&&" + signal_mom_cut;
+
+
+  TString cuts;
+  if(cutID == 0)
+    cuts = "";
+  else if (cutID == 1)
+    cuts = physicsCuts;
+  else if (cutID == 2)
+    cuts = expandedMomCuts;
+  else if (cutID == 3)
+    cuts = noMom;
+  else
+    return;
+
+  
+  //Read tree from file
+  TFile inFile(treePath.c_str());
+  TTree *tree;
+  if (neg) 
+    tree = (TTree*) inFile.Get("TrkAnaNeg/trkana");
+  else
+    tree = (TTree*) inFile.Get("TrkAnaPos/trkana");
+  
+  if (tree == NULL)
+    {
+      cout << "Tree cannot be found/read. Check the filepath" << endl;
+      exit(2);
+    }
+
+  // gStyle->SetPalette(55);
+  
+  TCanvas *canv = new TCanvas("canv","Duplication from Resampling",1600, 1200);
+
+  //crvinfomc._primaryZ
+  /* TH1F* h_crvinfomc_primaryZ = new TH1F("crvinfomc_primaryZ", "crvinfomc._primaryZ", 16, -80000, 80000);
+  tree->Draw("crvinfomc._primaryZ>>+h_crvinfomc_primaryZ",cuts, "goff");
+  h_crvinfomc_primaryZ = (TH1F*) gDirectory->Get("h_crvinfomc_primaryZ");
+  h_crvinfomc_primaryZ->SetTitle("crvinfomc._primaryZ");
+  h_crvinfomc_primaryZ->SetXTitle("Primary Particle z Pos at Gen Plane (mm)");
+  
+  canv->cd();
+  h_crvinfomc_primaryZ->Draw();
+  canv->SaveAs(("../Plots/crvinfomc_primaryZ_highGranularity.png"));*/
+  int nBins = 159;
+  double bins[nBins+1];
+  double minBin = -20000;
+  double maxBin = 20000;
+  double step = (maxBin-minBin)/(nBins + 1);
+  for (int b = 0; b <= nBins; b++)
+    {
+      bins[b] = minBin +(b*step);
+      cout << bins[b] << endl;
+    }
+  
+  TH1D* h_duplicateViewer = new TH1D("duplicateViewer", "Primary-Z MC Truth", nBins, bins);
+  h_duplicateViewer->SetXTitle("Primary -z (mm)");
+  tree->Draw("crvinfomc._primaryZ>>+h_duplicateViewer",cuts, "goff");
+  h_duplicateViewer = (TH1D*) gDirectory->Get("h_duplicateViewer");
+  // TH1D* rebinned = dynamic_cast<TH1F*> (h_duplicateViewer->Rebin(0.2,"rebinned"));
+  //h_duplicateViewer->SetBins(200, -10000, 0);
+  canv->cd();
+  h_duplicateViewer->Draw();
+  // rebinned->Draw();
+  canv->SaveAs(("../Plots/duplicateViewer_cut.png"));
+ 
+
+  /*TH2F* h_resamplingDuplicates = new TH2F("h_resamplingDuplicates", "Degree of Duplication after Resampling", 520, 0, 520000, 90, 0, 45000);
+  h_resamplingDuplicates->SetYTitle("Subrun ID");
+  h_resamplingDuplicates->SetXTitle("EventID");
+  h_resamplingDuplicates->SetStats(false);
+
+  tree->Draw("evtinfo.subrunid:evtinfo.eventid>>+h_resamplingDuplicates",cuts, "goff");
+  canv->cd();
+  h_resamplingDuplicates->Draw("colz");
+  canv->SaveAs(("../Plots/resamplingDuplication.png"));*/
+
+
+ 
+  /*
+  //Find the duplicates
+  vector<pair<int,int>> duplicates; //map eventID to frequency
+  
+  int nEvents = tree->GetEntries(cuts);
+
+  int evID;
+  TLeaf *evIDLeaf = tree->GetBranch("evtinfo.")->FindLeaf("eventid");
+  // tree->SetBranchAddress("evtinfo.eventid",&evID);
+  cout << cuts << endl;
+  
+  for (int ev = 0; ev < 1000; ev++)
+    {
+      tree->GetEntry(ev);
+      evID = evIDLeaf->GetValue();
+      int numInst = tree->GetEntries(cuts + "&&evtinfo.eventid=" + evID);
+      if( numInst != 5773)
+	cout << "evID = " << evID << " : numInst = " << numInst << endl;
+    }
+  */
+
+}
