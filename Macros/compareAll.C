@@ -38,11 +38,10 @@ const double LT_2025_LO_NOCUTS = 471297;
 const double LT_2030_HI_NOCUTS = 11519;
 const double LT_2030_LO_NOCUTS = 488245;
 const double LT_CRY1_NOCUTS = 363; 
-const double LT_CRY1_EXPMOM = 1.6; 
+const double LT_CRY1_EXPMOM = 2.0; 
 const double LT_CRY2_NOCUTS = 1390; 
-const double LT_CRY2_EXPMOM = 6.2; 
-//const double LT_DBY_NOCUTS = 
-//const double LT_DBY_EXPMOM =
+const double LT_CRY2_EXPMOM = 6.5; 
+
 
 /**********************************************************************************************************************************************************************************/
 
@@ -240,7 +239,7 @@ void defHistParams()
   hist_params.push_back(params_de_t0);
 
   histParams params_dequal_trkQualDeM;
-  params_dequal_trkQualDeM.title = "dequal.TrkQualDeM";
+  params_dequal_trkQualDeM.title = "dequal.TrkQual";
   params_dequal_trkQualDeM.xTitle = "Downstream e^- : Track Quality";
   params_dequal_trkQualDeM.xMins[0] = 0; //No cut params
   params_dequal_trkQualDeM.xMaxs[0] = 1;
@@ -433,7 +432,7 @@ void plotAllComparisons()
   TTree *tree_CRY2 = (TTree*) file_CRY2.Get("TrkAnaNeg/trkana");
   // TTree *tree_DBY = (TTree*) file_DBY.Get("allTracks");
 
-  TCanvas *canv = new TCanvas("canv","Sample Comparisons",1800,600);
+  TCanvas *canv = new TCanvas("canv","Sample Comparisons",1200,600);
 
   for (int cutN = 0; cutN <= NCUTS; cutN++) //For each cut
     {
