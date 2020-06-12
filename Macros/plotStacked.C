@@ -476,7 +476,7 @@ void plotStacked(string sample)
     }
 
 
-  TCanvas *canv = new TCanvas("canv",("Stacked Plots - " + sample).c_str(),1800,600);
+  TCanvas *canv = new TCanvas("canv",("Stacked Plots - " + sample).c_str(),1200,600);
 
   for (int cutN = 0; cutN <= NCUTS; cutN++) //For each cut
     {
