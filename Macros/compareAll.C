@@ -23,24 +23,26 @@ TFile file_2025_lo_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/lo2025_r
 //CRY1 and CRY2 samples
 TFile  file_CRY2("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_CRY2/cry2_ralfsAdds.root");
 TFile  file_CRY1("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_CRY1/cry1_ralfsAdds.root");
+//TFile  file_CRY2("/mu2e/data/users/bbarton/CRY2/TrkAnaTrees/cry2_new15July2019.root");
+//TFile  file_CRY1("/mu2e/data/users/bbarton/CRY1/TrkAnaTrees/cry1_new24July2019.root");
 
 //DBY Sample
 //TFile file_DBY("/mu2e/data/users/oksuzian/CRVnTupleAllTracks.root");
 
 
 //Livetimes of samples with various cuts [effective 2.46e6s years]
-const double LT_2025_HI_EXPMOM = 50;
-const double LT_2025_LO_EXPMOM = 1479;
-const double LT_2030_HI_EXPMOM = 50;
-const double LT_2030_LO_EXPMOM = 1482;
-const double LT_2025_HI_NOCUTS = 12337;
-const double LT_2025_LO_NOCUTS = 471297;
-const double LT_2030_HI_NOCUTS = 11519;
-const double LT_2030_LO_NOCUTS = 488245;
-const double LT_CRY1_NOCUTS = 363; 
+const double LT_2025_HI_EXPMOM = 49.5;
+const double LT_2025_LO_EXPMOM = 1479.9;
+const double LT_2030_HI_EXPMOM = 49.5;
+const double LT_2030_LO_EXPMOM = 1483.6;
+const double LT_2025_HI_NOCUTS = 12334;
+const double LT_2025_LO_NOCUTS = 471745;
+const double LT_2030_HI_NOCUTS = 11516;
+const double LT_2030_LO_NOCUTS = 488709;
+const double LT_CRY1_NOCUTS = 367; 
 const double LT_CRY1_EXPMOM = 2.0; 
-const double LT_CRY2_NOCUTS = 1390; 
-const double LT_CRY2_EXPMOM = 6.5; 
+const double LT_CRY2_NOCUTS = 1083; 
+const double LT_CRY2_EXPMOM = 5.0; 
 
 
 /**********************************************************************************************************************************************************************************/
@@ -501,13 +503,12 @@ void plotAllComparisons()
 	  hCRY2->SetLineColor(kRed);
 	  //	  hDBY->SetLineColor(kGreen);
 
-	  /*
-	  hHi->SetFillColor(kBlue);
-	  hLo->SetFillColor(kViolet);
-	  hCRY1->SetFillColor(kMagenta);
-	  hCRY2->SetFillColor(kRed);
-	  hDBY->SetFillColor(kGreen);
-	  */
+	  
+	  //hHi->SetFillColor(kBlack);
+	  hLo->SetFillColor(kBlue);
+	  //hCRY1->SetFillColor(kMagenta);
+	  //hCRY2->SetFillColor(kRed);
+	  //hDBY->SetFillColor(kGreen);
 
 	  hCRY1->Draw("hist");
 
