@@ -29,23 +29,16 @@ TFile file_2030_lo_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/lo2030_r
 //TFile file_2030_hi("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/hi2030.root");
 //TFile file_2030_lo("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2030/lo2030.root");
 
-//CRY1 and CRY2 samples
-TFile  file_CRY2("/mu2e/data/users/bbarton/CRY2/TrkAnaTrees/cry2_new15July2019.root");
-TFile  file_CRY("/mu2e/data/users/bbarton/CRY1/TrkAnaTrees/cry1_new24July2019.root");
-
 
 //Livetimes of samples with various cuts
 const double LT_2025_HI_EXPMOM = 50;
-const double LT_2025_LO_EXPMOM = 1479;
+const double LT_2025_LO_EXPMOM = 1479.9;
 const double LT_2030_HI_EXPMOM = 50;
-const double LT_2030_LO_EXPMOM = 1482;
-const double LT_2025_HI_NOCUTS = 12337;
-const double LT_2025_LO_NOCUTS = 471297;
-const double LT_2030_HI_NOCUTS = 11519;
-const double LT_2030_LO_NOCUTS = 488245;
-const double LT_CRY1_NOCUTS = 0.052 * 1e7 / 2.46e6; 
-const double LT_CRY1_EXPMOM = 1; //////////////////////////////////////// UPDATE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+const double LT_2030_LO_EXPMOM = 1483.6;
+const double LT_2025_HI_NOCUTS = 12334;
+const double LT_2025_LO_NOCUTS = 471745;
+const double LT_2030_HI_NOCUTS = 11516;
+const double LT_2030_LO_NOCUTS = 488709;
 
 /**********************************************************************************************************************************************************************************/
 
@@ -361,6 +354,7 @@ void defHistParams()
 
 //Makes stacked plots of hi and lo for each histParam struct in defHistParams()
 //Files are saved as pngs/pdfs
+//@param sample : The year of the sample i.e. 2025 or 2030
 void plotStacked(string sample)
 {
   if (NCUTS < 1)
@@ -397,20 +391,26 @@ void plotStacked(string sample)
   string noMomCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid;// + "&&" + timing_cut; 
   string physCuts = no_upstream + "&&" + trk_qual + "&&" + pitch_angle + "&&" + min_trans_R + "&&" + max_trans_R + "&&" + trk_cut_pid +/* "&&" + timing_cut + */"&&" + physics_mom;
   
-  ///////////////////////////////////////////////////////////// e^+ cuts //////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////// e^+ cuts //////////////////////////////////////////////////////////////////////////////////
   string nactive = "de.nactive > 20 && de.nactive < 200";
   string nhits_minus_nactive = "(de.nhits - de.nactive) > 0 && (de.hits - de.nactive) < 5";
   string perr = "deent.momerr > 0 && deent.momerr < 0.4";
   string t0err = "de.t0err> 0 && de.t0err < 1.5";
   string tandip = "deent.td > 0.57";
-  string d0 = "-1*deent.d0 > -100 && -1*deent < 100";
+  string d0 = "-1*deent.d0 > -100 && -1*deent.d0 < 100";
   string rmax = "abs(deent.d0+2.0/deent.om)>430. && abs(deent.d0+2.0/deent.om)<690.";
   string chisqrd_dof = "(de.chisq / de.ndof) > 0 && (de.chisq / de.ndof) < 5";
   string mom = "deent.mom > 90.5 && deent.mom < 92.5";
   string t0 = "de.t0 > 700 && de.t0 < 1695";
   string ePlusCuts =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof+"&&"+mom;//+"&&"+t0; //std cuts
-  // string ePlusCutsPlus =nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+chisqrd_dof+"&&"+mom+"&&"+trk_cut_pid+"&&"+trk_qual; //Add pid, trk qual
+  string ePlus_noMom = nactive+"&&"+nhits_minus_nactive+"&&"+perr+"&&"+t0err+"&&"+tandip+"&&"+d0+"&&"+rmax+"&&"+chisqrd_dof;//+"&&"+t0;
+  string ePlus_uestatus = ePlusCuts + "&&" + "ue.status<0";
+  string ePlus_trkqual = ePlusCuts + "&&" + trk_qual;
+  string ePlus_trkPID = ePlusCuts + "&&" + trk_cut_pid;
+  string ePlus_trkQual_PID = ePlusCuts + "&&" + trk_qual + "&&" + trk_cut_pid;
+  string ePlus_noMom_trkQual_PID = ePlus_noMom + "&&" + trk_qual + "&&" + trk_cut_pid;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   //Cut lists & identifiers // Add any additional cuts that you want to make to this list
   string cuts[NCUTS + 1];
@@ -431,7 +431,7 @@ void plotStacked(string sample)
       cutIDs[0] = "noCuts";
       cuts[1] = ePlusCuts;
       cutIDs[1] = "stdCuts";
-      // cuts[2] = ePlusCutsPlus;
+      // cuts[2] = ePlus_trkQual_PID;
       // cutIDs[2] = "stdCuts-PID-TrkQual";
     }
 
@@ -476,7 +476,7 @@ void plotStacked(string sample)
     }
 
 
-  TCanvas *canv = new TCanvas("canv",("Stacked Plots - " + sample).c_str(),1800,600);
+  TCanvas *canv = new TCanvas("canv",("Stacked Plots - " + sample).c_str(),1200,600);
 
   for (int cutN = 0; cutN <= NCUTS; cutN++) //For each cut
     {
@@ -539,7 +539,7 @@ void plotStacked(string sample)
 	  hHi->SetLineColor(kBlue);
 	  hLo->SetLineColor(kRed);
 
-	  hHi->SetFillColorAlpha(kBlue, 0.2);
+	  //hHi->SetFillColorAlpha(kBlue, 0.2);
 	  hLo->SetFillColorAlpha(kRed, 0.2);
 
 	  //Label plots

@@ -456,8 +456,6 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	    cuts = TCut(ePlus_noMom.c_str());
 	}
 	
-     
-      
       cutIdentifier = "_cut";
     }
   else
@@ -467,49 +465,48 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
     }
 
   cout << cuts << endl;
+
+  //demc.pdg
+  int n_eMinus =  tree->GetEntries(cuts + "demc.pdg==11");
+  int n_ePlus = tree->GetEntries(cuts + "demc.pdg==-11");
+  int n_muMinus = tree->GetEntries(cuts + "demc.pdg==13");
+  int n_muPlus = tree->GetEntries(cuts + "demc.pdg==-13");
+  //demcgen.pdg
+  int n_priMuMinus = tree->GetEntries(cuts + "demcgen.pdg==13");
+  int n_priMuPlus = tree->GetEntries(cuts + "demcgen.pdg==-13");
+  int n_priPiMinus = tree->GetEntries(cuts + "demcgen.pdg==-211");
+  int n_priPiPlus = tree->GetEntries(cuts + "demcgen.pdg==211");
+  int n_priProt = tree->GetEntries(cuts + "demcgen.pdg==2212");
+  int n_priNeut = tree->GetEntries(cuts + "demcgen.pdg==2112");
   
-  //Print out some information about the PDG of events 
-  if (false) //////////////////////////////////////////////////// Change this if you want the below scans to run
-    {
-      cout << "Events which were not produced by a muon that did not produce coincidences in the CRV" << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg",cuts + "abs(demcgen.pdg)!=13" + "@crvinfo.size()<1","");
-      cout << "\n" << endl;
-
-      cout << "Non-muon/electron background events" << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>211","");
-
-      cout << "mu- background events" << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "(demc.pdg)==13","");
+  printf("\n  Reconstructed Particles    |\t\t Primary particles\n");
+  printf("e-\te+\tmu-\tmu+  |\tmu-\tmu+\tpi-\tpi+\tp+\tn\n");
+  printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", n_eMinus, n_ePlus, n_muMinus, n_muPlus, n_priMuMinus, n_priMuPlus, n_priPiMinus, n_priPiPlus, n_priProt, n_priNeut);
   
-      cout << "mu+ background events" << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "demc.pdg==-13","");
+  cout << "\nNumber of events without CRV coincidences = " << tree->GetEntries(cuts + "@crvinfo.size()<1") << endl;
+        
+  cout << "\nOther reconstructed events:" << endl;
+  tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>13","");
+  cout << "\nOther primary particles:" << endl;
+  tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg:demc.pdg",cuts + "abs(demcgen.pdg)!=13&&abs(demcgen.pdg)!=211&&abs(demcgen.pdg)!=2112&&abs(demcgen.pdg)!=2212","");
   
-      cout << "e+ background events" << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "(demc.pdg)==-11","");
-
-      cout <<"\n" << endl;
-    }
-  else 
-    {
-      cout << "\nReconstructed particles (demc.pdg)" << endl;
-      cout << "Number of e- events = " << tree->GetEntries(cuts + "demc.pdg==11")  << endl;
-      cout << "Number of e+ events = " << tree->GetEntries(cuts + "demc.pdg==-11")  << endl;
-      cout << "Number of mu- events = " << tree->GetEntries(cuts + "demc.pdg==13")  << endl;
-      cout << "Number of mu+ events = " << tree->GetEntries(cuts + "demc.pdg==-13")  << endl;
-
-      cout << "\nPrimary particles (demcgen.pdg)" << endl;
-      cout << "Number of n events = " << tree->GetEntries(cuts + "demcgen.pdg==2112")  << endl;
-      cout << "Number of p+ events = " << tree->GetEntries(cuts + "demcgen.pdg==2212")  << endl;
-      cout << "Number of mu- events = " << tree->GetEntries(cuts + "demcgen.pdg==13")  << endl;
-      cout << "Number of mu+ events = " << tree->GetEntries(cuts + "demcgen.pdg==-13")  << endl;
-      cout << "Number of pi- events = " << tree->GetEntries(cuts + "demcgen.pdg==-211")  << endl;
-      cout << "Number of pi+ events = " << tree->GetEntries(cuts + "demcgen.pdg==211")  << endl;
-
-      cout << "Number of events without CRV coincidences = " << tree->GetEntries(cuts + "@crvinfo.size()<1") << endl;
       
-     
-      cout << "\nOther reconstructed events:" << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>211","");
+  /*cout << "\nReconstructed particles (demc.pdg)" << endl;
+    cout << "Number of e- events = " << n_eMinus << endl;
+    cout << "Number of e+ events = " << n_ePlus  << endl;
+    cout << "Number of mu- events = " << n_muMinus << endl;
+    cout << "Number of mu+ events = " << tree->GetEntries(cuts + "demc.pdg==-13")  << endl;
+
+    cout << "\nPrimary particles (demcgen.pdg)" << endl;      
+    cout << "Number of mu- events = " << tree->GetEntries(cuts + "demcgen.pdg==13")  << endl;
+    cout << "Number of mu+ events = " << tree->GetEntries(cuts + "demcgen.pdg==-13")  << endl;
+    cout << "Number of pi- events = " << tree->GetEntries(cuts + "demcgen.pdg==-211")  << endl;
+    cout << "Number of pi+ events = " << tree->GetEntries(cuts + "demcgen.pdg==211")  << endl;
+    cout << "Number of p+ events = " << tree->GetEntries(cuts + "demcgen.pdg==2212")  << endl;
+    cout << "Number of n events = " << tree->GetEntries(cuts + "demcgen.pdg==2112")  << endl;*/
+      
+  if(onlyScan)
+    {
       cout << "Events which were not produced by a muon that did not produce coincidences in the CRV:" << endl;
       tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg:demc.pdg:deent.mom",cuts +  "abs(demcgen.pdg)!=13" + "@crvinfo.size()<1","");
       cout << "\n" << endl;  
@@ -517,6 +514,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
       cout << "Muon events without CRV coincidences:" << endl;
       tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg:demc.pdg:deent.mom",cuts +  "abs(demcgen.pdg)=13" + "@crvinfo.size()<1","");
 
+      /*
       cout << "\nPrimary particles (demcgen.pdg)" << endl;
       double totalEvs = tree->GetEntries(cuts+"@crvinfo.size()<1");
       cout << "Fraction of unvetoed events from neutrons = " << tree->GetEntries(cuts + "demcgen.pdg==2112" +"@crvinfo.size()<1") / totalEvs  << endl;
@@ -525,28 +523,12 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
       cout << "Fraction of unvetoed events from mu-s = " << tree->GetEntries(cuts + "demcgen.pdg==-13"+"@crvinfo.size()<1") /totalEvs  << endl;
       cout << "Fraction of unvetoed events from pi-s =" << tree->GetEntries(cuts + "demcgen.pdg==-211"+"@crvinfo.size()<1") / totalEvs  << endl;
       cout << "Number of pi+ events = " << tree->GetEntries(cuts + "demcgen.pdg==211"+"@crvinfo.size()<1") /totalEvs << endl;
-     
+      */
     }
 
-  if (makeCuts)
-    {
-      cout << "Non-electron reconstructed events: " << endl;
-      tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "demc.pdg!=11","");
-      
-    }
-
-  /////// Other scans
-  // cout << "Events in the delta t tail:" << endl;
-  // tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg:(de.t0 - crvinfo._timeWindowStart):ue.nHits",cuts + "(de.t0 - crvinfo._timeWindowStart)>40","");
-  // cout << "Events with t0 < 800 ns:" << endl;
-  // tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg:de.t0",cuts + "de.t0<800","");
-  // cout << "Events in lower cluster of delta t vs z plot" << endl;
-  //tree->Scan("evtinfo.subrunid:evtinfo.eventid:(de.t0 - crvinfo._timeWindowStart):crvinfomc._z[0]:demc.pdg:demcgen.pdg",cuts +"(de.t0 - crvinfo._timeWindowStart)<0&&crvinfomc._z[0]/1000>12","");
-  // cout << "Events in upper cluster of delta t vs z plot" << endl;
-  //tree->Scan("evtinfo.subrunid:evtinfo.eventid:(de.t0 - crvinfo._timeWindowStart):crvinfomc._z[0]:demc.pdg:demcgen.pdg",cuts + "(de.t0 - crvinfo._timeWindowStart)>30&&crvinfomc._z[0]/1000>12","");
 
   if (onlyScan) 
-    exit(0);
+    return;
 
   //Initialize the histograms
   initializeHists(makeCuts);
