@@ -434,7 +434,7 @@ void plotAllComparisons()
   TTree *tree_CRY2 = (TTree*) file_CRY2.Get("TrkAnaNeg/trkana");
   // TTree *tree_DBY = (TTree*) file_DBY.Get("allTracks");
 
-  TCanvas *canv = new TCanvas("canv","Sample Comparisons",1200,600);
+  TCanvas *canv = new TCanvas("canv","Sample Comparisons",1000,600);
 
   for (int cutN = 0; cutN <= NCUTS; cutN++) //For each cut
     {
@@ -511,6 +511,7 @@ void plotAllComparisons()
 	  //hDBY->SetFillColor(kGreen);
 
 	  hCRY1->Draw("hist");
+	  hCRY1->GetXaxis()->SetTitle(params.xTitle.c_str());
 
 	  //Build the stack of hi and lo samples and draw all of the histograms
 	  THStack *stack = new THStack("stack",(params.title + " : " + cutIDs[cutN]).c_str());
@@ -521,6 +522,7 @@ void plotAllComparisons()
 	  
 	 
 	  hCRY2->Draw("same hist");
+	  hCRY2->GetXaxis()->SetTitle(params.xTitle.c_str());
 	  // hDBY->Draw("same hist");
 	 
 	  
