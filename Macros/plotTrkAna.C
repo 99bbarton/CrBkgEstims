@@ -76,7 +76,8 @@ TGraph *g_oposx_vs_oposz;
 TGraph *g_oposy_vs_oposz;
 TGraph *g_oposy_vs_oposx;
 TGraph *g_crvinfomcplane_primaryZ_vs_X;
-
+TGraph *g_primaryZ_vs_X_vetoed;
+TGraph *g_primaryZ_vs_X_nonVetoed;
 
 
 void initializeHists(bool makeCuts)
@@ -394,9 +395,10 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   
 
 
+
   //////////////////////////////////////////////////////////// e^+ cuts //////////////////////////////////////////////////////////////////////////////////
   string nactive = "de.nactive > 20 && de.nactive < 200";
-  string nhits_minus_nactive = "(de.nhits - de.nactive) > 0 && (de.hits - de.nactive) < 5";
+  string nhits_minus_nactive = "(de.nhits - de.nactive) > 0 && (de.nhits - de.nactive) < 5";
   string perr = "deent.momerr > 0 && deent.momerr < 0.4";
   string t0err = "de.t0err> 0 && de.t0err < 1.5";
   string tandip = "deent.td > 0.57";
@@ -413,7 +415,14 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string ePlus_trkPID = ePlusCuts + "&&" + trk_cut_pid;
   string ePlus_trkQual_PID = ePlusCuts + "&&" + trk_qual + "&&" + trk_cut_pid;
   string ePlus_noMom_trkQual_PID = ePlus_noMom + "&&" + trk_qual + "&&" + trk_cut_pid;
+  string ePlus_v2 = "de.nactive>18 && de.nactive<200 && (de.nhits-de.nactive)>0 && (de.nhits-de.nactive)<6 && de.nactive/de.nhits>0.87 && de.nactive/de.nhits<1 && deent.momerr>0 && deent.momerr<0.27 && de.t0err>0 && de.t0err<1.2 && deent.td>0.5 && deent.td<1.5 && -1*deent.d0>-50 && -1*deent.d0<150 && abs(deent.d0+2.0/deent.om)>400. && abs(deent.d0+2.0/deent.om)<680. && (de.chisq/de.ndof)>0 && (de.chisq/de.ndof)<3.5";
+  string ePlus_v2_mom = ePlus_v2 + "&&" + mom;
+  string ePlus_v2_trkQual_PID = ePlus_v2_mom + "&&" + trk_qual + "&&" + trk_cut_pid;
+  string ePlus_v2_expMom_trkQual_PID = ePlus_v2 + "&& deent.mom > 80. && deent.mom < 100. &&" + trk_qual + "&&" + trk_cut_pid;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  TCut noCRVcoincidences = "@crvinfo.size()<1";
+  TCut yesCRVcoincidences = "@crvinfo.size()>=1";
 
 
   //Read tree from file
@@ -434,26 +443,44 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   TCut cuts;
   string cutIdentifier;
   if (makeCuts)
-    {     
-      if (momCut == 2)
-	cuts = TCut(signalCuts.c_str());
-      else if (momCut == 1)
-	cuts =TCut(physicsCuts.c_str());
-      else if (momCut == 3)
-	cuts = TCut(noPIDnoMom.c_str());
+    {  
+      if (neg)
+	{   
+	  if (momCut == 2)
+	    cuts = TCut(signalCuts.c_str());
+	  else if (momCut == 1)
+	    cuts =TCut(physicsCuts.c_str());
+	  else if (momCut == 3)
+	    cuts = TCut(noPIDnoMom.c_str());
+	  else if (momCut == 0)
+	    cuts = TCut(noMom.c_str());
+	  else
+	    {
+	      cout << "ERROR: momCut = " << momCut << " is not recognized." << endl;
+	      exit(1);
+	    }
+	}
       else
-	cuts = TCut(noMom.c_str());
-
-      if (!neg)
 	{
-	  if (momCut == 1)
+	  if (momCut == 0)
+	    cuts = TCut(ePlus_noMom.c_str());
+	  else if (momCut == 1)
 	    cuts = TCut(ePlusCuts.c_str());
 	  else if (momCut == 2)
 	    cuts = TCut(ePlus_trkQual_PID.c_str());
 	  else if (momCut == 3)
 	    cuts = TCut(ePlus_noMom_trkQual_PID.c_str());
+	  else if (momCut == 4)
+	    cuts = TCut(ePlus_v2_mom.c_str());
+	  else if (momCut == 5)
+	    cuts = TCut(ePlus_v2_trkQual_PID.c_str());
+	  else if (momCut == 6)
+	    cuts = TCut(ePlus_v2_expMom_trkQual_PID.c_str());
 	  else
-	    cuts = TCut(ePlus_noMom.c_str());
+	    {
+	      cout << "ERROR: momCut = " << momCut << " is not recognized." << endl;
+	      exit(1);
+	    }
 	}
 	
       cutIdentifier = "_cut";
@@ -471,6 +498,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   int n_ePlus = tree->GetEntries(cuts + "demc.pdg==-11");
   int n_muMinus = tree->GetEntries(cuts + "demc.pdg==13");
   int n_muPlus = tree->GetEntries(cuts + "demc.pdg==-13");
+  int n_piMinus = tree->GetEntries(cuts + "demc.pdg==-211");
+  int n_piPlus = tree->GetEntries(cuts + "demc.pdg==211");
   //demcgen.pdg
   int n_priMuMinus = tree->GetEntries(cuts + "demcgen.pdg==13");
   int n_priMuPlus = tree->GetEntries(cuts + "demcgen.pdg==-13");
@@ -479,14 +508,14 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   int n_priProt = tree->GetEntries(cuts + "demcgen.pdg==2212");
   int n_priNeut = tree->GetEntries(cuts + "demcgen.pdg==2112");
   
-  printf("\n  Reconstructed Particles    |\t\t Primary particles\n");
-  printf("e-\te+\tmu-\tmu+  |\tmu-\tmu+\tpi-\tpi+\tp+\tn\n");
-  printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", n_eMinus, n_ePlus, n_muMinus, n_muPlus, n_priMuMinus, n_priMuPlus, n_priPiMinus, n_priPiPlus, n_priProt, n_priNeut);
+  printf("\n \t  Reconstructed Particles\t     |\t\t Primary particles\n");
+  printf("e-\te+\tmu-\tmu+\tpi-\tpi+  |\tmu-\tmu+\tpi-\tpi+\tp+\tn\n");
+  printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", n_eMinus, n_ePlus, n_muMinus, n_muPlus, n_piMinus, n_piPlus, n_priMuMinus, n_priMuPlus, n_priPiMinus, n_priPiPlus, n_priProt, n_priNeut);
   
-  cout << "\nNumber of events without CRV coincidences = " << tree->GetEntries(cuts + "@crvinfo.size()<1") << endl;
+  cout << "\nNumber of events without CRV coincidences = " << tree->GetEntries(cuts + noCRVcoincidences) << endl;
         
   cout << "\nOther reconstructed events:" << endl;
-  tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>13","");
+  tree->Scan("evtinfo.subrunid:evtinfo.eventid:demc.pdg",cuts + "abs(demc.pdg)>211","");
   cout << "\nOther primary particles:" << endl;
   tree->Scan("evtinfo.subrunid:evtinfo.eventid:demcgen.pdg:demc.pdg",cuts + "abs(demcgen.pdg)!=13&&abs(demcgen.pdg)!=211&&abs(demcgen.pdg)!=2112&&abs(demcgen.pdg)!=2212","");
   
@@ -805,7 +834,7 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   logCanv->SaveAs(("../Plots/cos_theta_logY" + cutIdentifier + filetype).c_str());
 
   //demc.pdg of events with no CRV coincidences
-  TCut noCRVcoincidences = "@crvinfo.size()<1";
+  
   tree->Draw("demc.pdg>>+h_noCRV_demc_pdg",cuts + noCRVcoincidences, "goff");
   h_noCRV_demc_pdg = (TH1F*) gDirectory->Get("h_noCRV_demc_pdg");
   canv->cd();
@@ -927,6 +956,25 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   canv->Update();
   canv->SaveAs(("../Plots/demc_oposy_vs_oposx" + cutIdentifier + filetype).c_str());
 
+  //Primary z vs x with vetoed events in blue and non-vetoed events in red
+  canv->cd();
+  TMultiGraph *mg = new TMultiGraph();
+  tree->Draw("demcpri.posx:demcpri.posz", cuts + yesCRVcoincidences);
+  g_primaryZ_vs_X_vetoed = (TGraph*) gPad->GetPrimitive("Graph");
+  g_primaryZ_vs_X_vetoed->SetTitle("MCTruth Primary Position;x position (mm);z position (mm)");
+  g_primaryZ_vs_X_vetoed->SetMarkerColor(kBlue);
+  //canv->Update();
+  //mg->Add(g_primaryZ_vs_X_vetoed);
+  tree->Draw("demcpri.posx:demcpri.posz", cuts + noCRVcoincidences, "same");
+  g_primaryZ_vs_X_nonVetoed = (TGraph*) gPad->GetPrimitive("Graph");
+  g_primaryZ_vs_X_nonVetoed->SetTitle("MCTruth Primary Position;x position (mm);z position (mm)");
+  g_primaryZ_vs_X_nonVetoed->SetMarkerColor(kRed);
+  //mg->Add(g_primaryZ_vs_X_nonVetoed);
+  //mg->Draw("AP");
+  canv->Update();
+  canv->SaveAs(("../Plots/vetoed_vs_nonVetoed_primaryZ_vs_X" + cutIdentifier + filetype).c_str());
+
+
 
   if (INC_CRV_SUMMARIES)
     {
@@ -947,14 +995,15 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 
 
       //MC Truth location where primary reached the CRV
-      canv->cd();
+      /* canv->cd();
       tree->Draw("crvinfomcplane._primaryZ:crvinfomcplane._primaryX", cuts);
       g_crvinfomcplane_primaryZ_vs_X = (TGraph*) gPad->GetPrimitive("Graph");
       g_crvinfomcplane_primaryZ_vs_X->SetTitle("MCTruth Position where Primary Reached CRV;z position (mm);x position (mm)");
       canv->Update();
-      canv->SaveAs(("../Plots/crvinfomcplane_primaryZ_vs_X" + cutIdentifier + filetype).c_str());
+      canv->SaveAs(("../Plots/crvinfomcplane_primaryZ_vs_X" + cutIdentifier + filetype).c_str());*/
 
     }
+
 
   //Clean up
   canv->Close();
@@ -962,6 +1011,5 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   deleteHists();
 
 }
-
 
 
