@@ -14,7 +14,7 @@ const bool INC_CRV_SUMMARIES = false; //Set to true if examining tree with Ralf'
 /**********************************************************************************************************************************************************************************/
 ///////////////////////////////////////////////////////////////   Input Files    ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// 2025 Sample
+// 2025 CRY3 Sample
 TFile file_2025_hi_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/hi2025_ralfsAdds.root"); //summs sufix denotes addition of Ralf's CRV summary branches
 TFile file_2025_lo_summs("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/lo2025_ralfsAdds.root");
 //TFile file_2025_hi("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_2025/hi2025.root");
@@ -31,19 +31,18 @@ TFile  file_CRY1("/mu2e/data/users/bbarton/CR_BKGDS/TrkAna_CRY1/cry1_ralfsAdds.r
 
 
 //Livetimes of samples with various cuts [effective 2.46e6s years]
+const double LT_2025_HI_PHYS = 5.20;
+const double LT_2025_LO_PHYS = 155.4;
 const double LT_2025_HI_EXPMOM = 49.5;
 const double LT_2025_LO_EXPMOM = 1479.9;
-const double LT_2030_HI_EXPMOM = 49.5;
-const double LT_2030_LO_EXPMOM = 1483.6;
 const double LT_2025_HI_NOCUTS = 12334;
 const double LT_2025_LO_NOCUTS = 471745;
-const double LT_2030_HI_NOCUTS = 11516;
-const double LT_2030_LO_NOCUTS = 488709;
+const double LT_CRY1_PHYS = 0.21; 
 const double LT_CRY1_NOCUTS = 367; 
 const double LT_CRY1_EXPMOM = 2.0; 
 const double LT_CRY2_NOCUTS = 1083; 
 const double LT_CRY2_EXPMOM = 5.0; 
-
+const double LT_CRY2_PHYS = 0.53;
 
 /**********************************************************************************************************************************************************************************/
 
@@ -448,7 +447,6 @@ void plotAllComparisons()
 	  TH1F *hLo = new TH1F("hLo", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 	  TH1F *hCRY1 = new TH1F("hCRY1", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 	  TH1F *hCRY2 = new TH1F("hCRY2", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
-	  // TH1F *hDBY = new TH1F("hDBY", params.title.c_str(), params.nBins[cutN], params.xMins[cutN], params.xMaxs[cutN]);
 
 	  //Get data from trees and store in histograms
 	  string expr;
@@ -460,8 +458,6 @@ void plotAllComparisons()
 	  tree_lo->Draw(Form("%s>>+hLo", expr.c_str()), cuts[cutN].c_str(), "goff");
 	  tree_CRY1->Draw(Form("%s>>+hCRY1", expr.c_str()), cuts[cutN].c_str() , "goff");
 	  tree_CRY2->Draw(Form("%s>>+hCRY2", expr.c_str()), cuts[cutN].c_str(), "goff");
-	  // tree_DBY->Draw(Form("%s>>+hDBY", expr.c_str()), cuts[cutN].c_str() , "goff");
-	  
 	  
 	  hHi = (TH1F*) gDirectory->Get("hHi");
 	  hLo = (TH1F*) gDirectory->Get("hLo");
@@ -474,41 +470,27 @@ void plotAllComparisons()
 	  double lt_lo = 1; 
 	  double lt_CRY1 = 1;
 	  double lt_CRY2 = 1;
-	  //  double lt_DBY = 1;
-	  if (cutN == 1){
-	    lt_hi = LT_2025_HI_EXPMOM;
-	    lt_lo = LT_2025_LO_EXPMOM;
-	    //   lt_DBY = LT_DBY_EXPMOM;
-	    lt_CRY1 = LT_CRY1_EXPMOM;
-	    lt_CRY2 = LT_CRY2_EXPMOM;
-	  }
-	  else if(cutN == 0){
-	    lt_hi = LT_2025_HI_NOCUTS;
-	    lt_lo = LT_2025_LO_NOCUTS;
-	    // lt_DBY = LT_DBY_NOCUTS;
-	    lt_CRY1 = LT_CRY1_NOCUTS;
-	    lt_CRY2 = LT_CRY2_NOCUTS;
-	   
-	  }
+	  //Scale everything to physics livetimes
+	  lt_hi = LT_2025_HI_PHYS;
+	  lt_lo = LT_2025_LO_PHYS;
+	  lt_CRY1 = LT_CRY1_PHYS;
+	  lt_CRY2 = LT_CRY2_PHYS;
+	  
 	  hHi->Scale(1.0 / lt_hi);
 	  hLo->Scale(1.0 / lt_lo);
 	  hCRY1->Scale(1.0 / lt_CRY1);
 	  hCRY2->Scale(1.0 / lt_CRY2);
-	  //  hDBY->Scale(1.0 / lt_DBY);
 
 	  //Set plot style
 	  hHi->SetLineColor(kBlack);
 	  hLo->SetLineColor(kBlue);
 	  hCRY1->SetLineColor(kMagenta);
 	  hCRY2->SetLineColor(kRed);
-	  //	  hDBY->SetLineColor(kGreen);
 
-	  
 	  //hHi->SetFillColor(kBlack);
 	  hLo->SetFillColor(kBlue);
 	  //hCRY1->SetFillColor(kMagenta);
 	  //hCRY2->SetFillColor(kRed);
-	  //hDBY->SetFillColor(kGreen);
 
 	  hCRY1->Draw("hist");
 	  hCRY1->GetXaxis()->SetTitle(params.xTitle.c_str());
@@ -525,15 +507,15 @@ void plotAllComparisons()
 	  hCRY2->GetXaxis()->SetTitle(params.xTitle.c_str());
 	  // hDBY->Draw("same hist");
 	 
-	  
+	  /* 
 	  //Add legend
 	  TLegend *leg = new TLegend(0.7,0.7,0.85,0.9, "Entries/Year:");
 	  leg->AddEntry(hHi,Form("Hi: %.1lf", hHi->Integral()),"l");
 	  leg->AddEntry(hLo,Form("Lo: %.1f", hLo->Integral()),"l");
-	  //  leg->AddEntry("hDBY",Form("DBY: %0.1f events", hDBY->Integral()),"l");
 	  leg->AddEntry("hCRY2",Form("CRY2: %0.1f events", hCRY2->Integral()),"l");
 	  leg->AddEntry("hCRY1",Form("CRY1: %0.1f events", hCRY1->Integral()),"l");
 	  leg->Draw("same");
+	  */
 
 	  //Build a filename and save plots
 	  std::string plot_name;
@@ -561,9 +543,8 @@ void plotAllComparisons()
 	  hLo->Delete();
 	  hCRY1->Delete();
 	  hCRY2->Delete();
-	  //	  hDBY->Delete();
 	  stack->Delete();
-	  leg->Delete();
+	  //leg->Delete();
 
 	}
     }

@@ -135,7 +135,7 @@ void initializeHists(bool makeCuts)
   h_crvinfomc_primaryZ->SetXTitle("z (m)");
 
   //cvinfomc._primaryZ:crvinfomc._primaryX - z vs x position of the primary
-  h_crvinfomc_primaryZ_vs_X = new TH2F("h_crvinfomc_primaryZ_vs_X", "crvinfomc._primaryZ vs crvinfomc._primaryX", 100, -80, 80, 100, -80, 80);
+  h_crvinfomc_primaryZ_vs_X = new TH2F("h_crvinfomc_primaryZ_vs_X", "crvinfomc._primaryZ vs crvinfomc._primaryX", 200, -80, 80, 200, -80, 80);
   h_crvinfomc_primaryZ_vs_X->SetXTitle("z (m)");
   h_crvinfomc_primaryZ_vs_X->SetYTitle("x (m)");
   h_crvinfomc_primaryZ_vs_X->SetStats(false);
@@ -417,8 +417,9 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   string ePlus_noMom_trkQual_PID = ePlus_noMom + "&&" + trk_qual + "&&" + trk_cut_pid;
   string ePlus_v2 = "de.nactive>18 && de.nactive<200 && (de.nhits-de.nactive)>0 && (de.nhits-de.nactive)<6 && de.nactive/de.nhits>0.87 && de.nactive/de.nhits<1 && deent.momerr>0 && deent.momerr<0.27 && de.t0err>0 && de.t0err<1.2 && deent.td>0.5 && deent.td<1.5 && -1*deent.d0>-50 && -1*deent.d0<150 && abs(deent.d0+2.0/deent.om)>400. && abs(deent.d0+2.0/deent.om)<680. && (de.chisq/de.ndof)>0 && (de.chisq/de.ndof)<3.5";
   string ePlus_v2_mom = ePlus_v2 + "&&" + mom;
+  string ePlus_v2_expMom = ePlus_v2 + "&& deent.mom > 80. && deent.mom < 100.";
   string ePlus_v2_trkQual_PID = ePlus_v2_mom + "&&" + trk_qual + "&&" + trk_cut_pid;
-  string ePlus_v2_expMom_trkQual_PID = ePlus_v2 + "&& deent.mom > 80. && deent.mom < 100. &&" + trk_qual + "&&" + trk_cut_pid;
+  string ePlus_v2_expMom_trkQual_PID = ePlus_v2_expMom + " && " + trk_qual + "&&" + trk_cut_pid;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   TCut noCRVcoincidences = "@crvinfo.size()<1";
@@ -476,6 +477,8 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
 	    cuts = TCut(ePlus_v2_trkQual_PID.c_str());
 	  else if (momCut == 6)
 	    cuts = TCut(ePlus_v2_expMom_trkQual_PID.c_str());
+	  else if (momCut == 7)
+	    cuts = TCut(ePlus_v2_expMom.c_str());
 	  else
 	    {
 	      cout << "ERROR: momCut = " << momCut << " is not recognized." << endl;
@@ -611,8 +614,10 @@ void makeStandardizedPlots(string treePath, bool neg, bool makeCuts, int momCut 
   //h_crvinfomc_z0_vs_x0
   tree->Draw("crvinfomc._x[0]/1000:crvinfomc._z[0]/1000>>+h_crvinfomc_z0_vs_x0",cuts, "goff");
   canv->cd();
+  canv->SetLogz(1);
   h_crvinfomc_z0_vs_x0->Draw("colz");
   canv->SaveAs(("../Plots/crvinfomc_z0_vs_x0" + cutIdentifier + filetype).c_str());
+  canv->SetLogz(0);
 
   canv->cd();
   tree->Draw("crvinfomc._x[0]/1000:crvinfomc._z[0]/1000",cuts);
